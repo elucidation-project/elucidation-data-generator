@@ -1,0 +1,49 @@
+plugins {
+    id("com.github.johnrengelman.shadow") version "5.2.0" apply false
+}
+
+allprojects {
+    apply plugin: 'java'
+    group = "com.fortitudetec.elucidation.data"
+    version = "1.0.0"
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'application'
+    apply plugin: 'com.github.johnrengelman.shadow'
+
+    ext {
+        // Runtime dependency versions
+        dropwizardVersion = '2.0.8'
+
+        // Provided dependency versions
+        lombokVersion = '1.18.12'
+
+        // Test dependency versions
+        junitVersion = '5.6.1'
+        assertjVersion = '3.15.0'
+        mockitoVersion = '3.3.3'
+    }
+
+    dependencies {
+        implementation "io.dropwizard:dropwizard-core:${dropwizardVersion}"
+
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+        testImplementation "io.dropwizard:dropwizard-testing:${dropwizardVersion}"
+        testImplementation "org.assertj:assertj-core:${assertjVersion}"
+        testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+        testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
+
+task stage(dependsOn: ['build', 'clean'])

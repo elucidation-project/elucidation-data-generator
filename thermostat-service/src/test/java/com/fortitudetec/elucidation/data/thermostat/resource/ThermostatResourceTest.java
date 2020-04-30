@@ -1,6 +1,7 @@
 package com.fortitudetec.elucidation.data.thermostat.resource;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.emptyMap;
 import static javax.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -169,6 +170,66 @@ class ThermostatResourceTest {
             assertThat(response.getStatus()).isEqualTo(201);
             assertThat(response.getHeaderString("Location")).isEqualTo(RESOURCE.baseUri() + "/thermostat/1/status");
             assertThat(response.readEntity(new GenericType<Map<String, Long>>(){}).get("id")).isEqualTo(1L);
+        }
+    }
+
+    @Nested
+    class AdjustTemperatureFor {
+
+        private static final String ADJUST_THERMOSTAT_TEMP_PATH = "thermostat/{id}/temp";
+
+        @Test
+        void shouldReturn202_WhenTemperatureUpdated() {
+            when(THERMOSTAT_DAO.setCurrentTemp(72.5, 1L)).thenReturn(1);
+
+            var response = client
+                    .target(RESOURCE.baseUri())
+                    .path(ADJUST_THERMOSTAT_TEMP_PATH)
+                    .resolveTemplate("id", 1L)
+                    .request()
+                    .put(json(Map.of("temp", 72.5)));
+
+            assertThat(response.getStatus()).isEqualTo(202);
+        }
+
+        @Test
+        void shouldReturn404_WhenTemperatureUpdateAttemptedButNotUpdated() {
+            when(THERMOSTAT_DAO.setCurrentTemp(72.5, 1L)).thenReturn(0);
+
+            var response = client
+                    .target(RESOURCE.baseUri())
+                    .path(ADJUST_THERMOSTAT_TEMP_PATH)
+                    .resolveTemplate("id", 1L)
+                    .request()
+                    .put(json(Map.of("temp", 72.5)));
+
+            assertThat(response.getStatus()).isEqualTo(404);
+        }
+
+        @Test
+        void shouldReturn422_WhenBodyIsEmpty() {
+            var response = client
+                    .target(RESOURCE.baseUri())
+                    .path(ADJUST_THERMOSTAT_TEMP_PATH)
+                    .resolveTemplate("id", 1L)
+                    .request()
+                    .put(json(""));
+
+            assertThat(response.getStatus()).isEqualTo(422);
+            assertThat(response.readEntity(String.class)).contains("The request body must not be null");
+        }
+
+        @Test
+        void shouldReturn400_WhenNewTempIsNotInBody() {
+            var response = client
+                    .target(RESOURCE.baseUri())
+                    .path(ADJUST_THERMOSTAT_TEMP_PATH)
+                    .resolveTemplate("id", 1L)
+                    .request()
+                    .put(json(emptyMap()));
+
+            assertThat(response.getStatus()).isEqualTo(400);
+            assertThat(response.readEntity(String.class)).contains("Body must contain temp:<temperature>");
         }
     }
 }

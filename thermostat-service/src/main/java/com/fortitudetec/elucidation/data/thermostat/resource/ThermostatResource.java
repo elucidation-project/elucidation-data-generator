@@ -5,11 +5,13 @@ import com.codahale.metrics.annotation.Timed;
 import com.fortitudetec.elucidation.data.thermostat.db.ThermostatDao;
 import com.fortitudetec.elucidation.data.thermostat.model.Thermostat;
 
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -40,7 +42,7 @@ public class ThermostatResource {
     @Path("/{id}/status")
     @Timed
     @ExceptionMetered
-    public Response currentTemp(@PathParam("id") Long id) {
+    public Response currentTemp(@PathParam("id") long id) {
         var optionalThermostat = dao.findById(id);
 
         return Response.ok(optionalThermostat
@@ -60,5 +62,21 @@ public class ThermostatResource {
         return Response.created(uri).entity(Map.of("id", id)).build();
     }
 
+    @PUT
+    @Path("/{id}/temp")
+    @Timed
+    @ExceptionMetered
+    public Response adjustTemperatureFor(@PathParam("id") long id, @NotNull Map<String, Double> body) {
+        if (!body.containsKey("temp")) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", "Body must contain temp:<temperature>")).build();
+        }
 
+        var updatedCount = dao.setCurrentTemp(body.get("temp"), id);
+
+        if (updatedCount == 0) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        return Response.accepted().build();
+    }
 }

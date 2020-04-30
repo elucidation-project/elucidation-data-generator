@@ -5,4 +5,4 @@ rootProject.name = "elucidation-data-generator"
 //include("doorbell-service")
 //include("home-service")
 //include("light-serivce")
-include("thermostat-service")
+include 'thermostat-service'
