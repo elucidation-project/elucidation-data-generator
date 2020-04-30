@@ -173,7 +173,52 @@ class ThermostatDaoTest {
                     72
             ));
 
+            int updatedCount = dao.setCurrentTemp(69, 1L);
 
+            var thermostats = jdbi.withHandle(handle -> handle.createQuery("select * from thermostats")
+                    .registerRowMapper(new ThermostatMapper())
+                    .mapTo(Thermostat.class)
+                    .list());
+
+            assertThat(updatedCount).isEqualTo(1);
+            assertThat(thermostats.get(0).getCurrentTemp()).isEqualTo(69);
+        }
+
+        @Test
+        void shouldReturnUpdatedCountOfZero_WhenThermostatNotFound() {
+            int updatedCount = dao.setCurrentTemp(10, 1L);
+            assertThat(updatedCount).isZero();
+        }
+    }
+
+    @Nested
+    class DeleteThermostat {
+        @Test
+        void shouldDeleteThermostatAndReturnUpdatedCount_WhenThermostatFound() {
+            jdbi.withHandle(handle -> handle.execute(
+                    "insert into thermostats (id, name, brand, location, current_temp) values (?, ?, ?, ?, ?)",
+                    1,
+                    THERMOSTAT_NAME,
+                    BRAND,
+                    LOCATION,
+                    72
+            ));
+
+            int deletedCount = dao.deleteThermostat(1L);
+
+            var thermostats = jdbi.withHandle(handle -> handle.createQuery("select * from thermostats")
+                    .registerRowMapper(new ThermostatMapper())
+                    .mapTo(Thermostat.class)
+                    .list());
+
+            assertThat(deletedCount).isEqualTo(1);
+            assertThat(thermostats).hasSize(0);
+        }
+
+        @Test
+        void shouldReturnUpdatedCountOfZero_WhenThermostatNotFound() {
+            int updatedCount = dao.deleteThermostat(1L);
+            assertThat(updatedCount).isZero();
         }
     }
 }

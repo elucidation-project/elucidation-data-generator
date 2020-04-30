@@ -27,4 +27,7 @@ public interface ThermostatDao {
 
     @SqlUpdate("update thermostats set current_temp = :currentTemp where id = :id")
     int setCurrentTemp(@Bind("currentTemp") double currentTemp, @Bind("id") long id);
+
+    @SqlUpdate("delete from thermostats where id = :id")
+    int deleteThermostat(@Bind("id") long id);
 }

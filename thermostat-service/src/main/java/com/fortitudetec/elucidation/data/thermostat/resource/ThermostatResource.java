@@ -8,6 +8,7 @@ import com.fortitudetec.elucidation.data.thermostat.model.Thermostat;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
@@ -77,6 +78,15 @@ public class ThermostatResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
+        return Response.accepted().build();
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @Timed
+    @ExceptionMetered
+    public Response deleteThermostat(@PathParam("id") long id) {
+        dao.deleteThermostat(id);
         return Response.accepted().build();
     }
 }

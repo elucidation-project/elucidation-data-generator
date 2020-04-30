@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fortitudetec.elucidation.data.thermostat.db.ThermostatDao;
@@ -230,6 +231,25 @@ class ThermostatResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(400);
             assertThat(response.readEntity(String.class)).contains("Body must contain temp:<temperature>");
+        }
+    }
+
+    @Nested
+    class DeleteThermostat {
+
+        @Test
+        void shouldDeleteThermostat() {
+            when(THERMOSTAT_DAO.deleteThermostat(1L)).thenReturn(1);
+
+            var response = client
+                    .target(RESOURCE.baseUri())
+                    .path("thermostat/{id}")
+                    .resolveTemplate("id", 1L)
+                    .request()
+                    .delete();
+
+            assertThat(response.getStatus()).isEqualTo(202);
+            verify(THERMOSTAT_DAO).deleteThermostat(1L);
         }
     }
 }
