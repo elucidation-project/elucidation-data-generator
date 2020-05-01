@@ -1,6 +1,9 @@
 package com.fortitudetec.elucidation.data.home;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fortitudetec.elucidation.data.home.config.AppConfig;
+import com.fortitudetec.elucidation.data.home.resource.DeviceResource;
 import io.dropwizard.testing.ConfigOverride;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit5.DropwizardAppExtension;
@@ -38,8 +41,7 @@ class AppTest {
 
     @Test
     void testRun() {
-        // TODO: Add back in once resource exists
-//        assertThat(APP.getEnvironment().jersey().getResourceConfig().isRegistered(ApplianceResource.class)).isTrue();
+        assertThat(APP.getEnvironment().jersey().getResourceConfig().isRegistered(DeviceResource.class)).isTrue();
     }
 
 }

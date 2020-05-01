@@ -2,6 +2,7 @@ package com.fortitudetec.elucidation.data.home;
 
 import com.fortitudetec.elucidation.data.home.config.AppConfig;
 import com.fortitudetec.elucidation.data.home.db.DeviceDao;
+import com.fortitudetec.elucidation.data.home.resource.DeviceResource;
 import io.dropwizard.Application;
 import io.dropwizard.db.PooledDataSourceFactory;
 import io.dropwizard.jdbi3.JdbiFactory;
@@ -37,7 +38,7 @@ public class App extends Application<AppConfig> {
 
 		var deviceDao = jdbi.onDemand(DeviceDao.class);
 
-		// TODO: Setup resources
+		env.jersey().register(new DeviceResource(deviceDao));
 	}
 
 	private Jdbi setupJdbi(AppConfig config, Environment env) {
