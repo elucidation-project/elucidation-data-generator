@@ -23,7 +23,7 @@ public interface DeviceDao {
 
     @SqlUpdate("insert into devices (name, device_type, device_type_id) values (:name, :deviceType, :deviceTypeId)")
     @GetGeneratedKeys
-    long create(@BindBean Device thermostat);
+    long create(@BindBean Device device);
 
     @SqlUpdate("delete from devices where id = :id")
     int deleteDevice(@Bind("id") long id);

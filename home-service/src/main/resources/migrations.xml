@@ -22,4 +22,18 @@
             </column>
         </createTable>
     </changeSet>
+
+    <changeSet id="2" author="chrisrohr">
+        <createTable tableName="workflows">
+            <column name="id" type="integer" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="step_json" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>
