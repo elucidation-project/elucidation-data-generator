@@ -2,7 +2,9 @@ package com.fortitudetec.elucidation.data.home;
 
 import com.fortitudetec.elucidation.data.home.config.AppConfig;
 import com.fortitudetec.elucidation.data.home.db.DeviceDao;
+import com.fortitudetec.elucidation.data.home.db.WorkflowDao;
 import com.fortitudetec.elucidation.data.home.resource.DeviceResource;
+import com.fortitudetec.elucidation.data.home.resource.WorkflowResource;
 import io.dropwizard.Application;
 import io.dropwizard.db.PooledDataSourceFactory;
 import io.dropwizard.jdbi3.JdbiFactory;
@@ -37,8 +39,10 @@ public class App extends Application<AppConfig> {
 		var jdbi = setupJdbi(config, env);
 
 		var deviceDao = jdbi.onDemand(DeviceDao.class);
+		var workflowDao = jdbi.onDemand(WorkflowDao.class);
 
 		env.jersey().register(new DeviceResource(deviceDao));
+		env.jersey().register(new WorkflowResource(workflowDao));
 	}
 
 	private Jdbi setupJdbi(AppConfig config, Environment env) {

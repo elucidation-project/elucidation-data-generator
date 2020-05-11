@@ -10,8 +10,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fortitudetec.elucidation.data.home.db.DeviceDao;
-import com.fortitudetec.elucidation.data.home.model.Device;
+import com.fortitudetec.elucidation.data.home.db.WorkflowDao;
+import com.fortitudetec.elucidation.data.home.model.Workflow;
 import io.dropwizard.testing.junit5.DropwizardClientExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import org.junit.jupiter.api.AfterEach;
@@ -29,15 +29,15 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("java:S100")
-@DisplayName("DeviceResource")
+@DisplayName("WorkflowResource")
 @ExtendWith(DropwizardExtensionsSupport.class)
-class DeviceResourceTest {
+class WorkflowResourceTest {
 
-    private static final DeviceDao DEVICE_DAO = mock(DeviceDao.class);
+    private static final WorkflowDao WORKFLOW_DAO = mock(WorkflowDao.class);
 
     private static final DropwizardClientExtension RESOURCE
-            = new DropwizardClientExtension(new DeviceResource(DEVICE_DAO));
-    private static final String NAME = "My First Device";
+            = new DropwizardClientExtension(new WorkflowResource(WORKFLOW_DAO));
+    private static final String NAME = "My First Workflow";
 
     private Client client;
 
@@ -48,79 +48,76 @@ class DeviceResourceTest {
 
     @AfterEach
     void clearMocks() {
-        reset(DEVICE_DAO);
+        reset(WORKFLOW_DAO);
     }
 
     @Nested
-    class ListRegisteredDevice {
+    class ListWorkflows {
 
         @Test
-        void shouldReturnAListOfAllDevice() {
-            var device = Device.builder()
+        void shouldReturnAListOfAllWorkflows() {
+            var workflow = Workflow.builder()
                     .id(1L)
                     .name(NAME)
-                    .deviceType(Device.DeviceType.THERMOSTAT)
-                    .deviceTypeId(10L)
+                    .stepJson("[]")
                     .build();
 
-            when(DEVICE_DAO.findAll()).thenReturn(newArrayList(device));
+            when(WORKFLOW_DAO.findAll()).thenReturn(newArrayList(workflow));
 
             var response = client
                     .target(RESOURCE.baseUri())
-                    .path("home/device")
+                    .path("home/workflow")
                     .request()
                     .get();
 
             assertThat(response.getStatus()).isEqualTo(200);
 
-            var devices = response.readEntity(new GenericType<List<Device>>(){});
+            var workflows = response.readEntity(new GenericType<List<Workflow>>(){});
 
-            assertThat(devices)
+            assertThat(workflows)
                     .hasSize(1)
-                    .extracting("id", "name", "deviceType", "deviceTypeId")
+                    .extracting("id", "name", "stepJson")
                     .contains(tuple(
-                            device.getId(),
-                            device.getName(),
-                            device.getDeviceType(),
-                            device.getDeviceTypeId()));
+                            workflow.getId(),
+                            workflow.getName(),
+                            workflow.getStepJson()));
         }
 
         @Test
-        void shouldReturnEmptyListIfNoDevice() {
-            when(DEVICE_DAO.findAll()).thenReturn(new ArrayList<>());
+        void shouldReturnEmptyListIfNoWorkflow() {
+            when(WORKFLOW_DAO.findAll()).thenReturn(new ArrayList<>());
 
             var response = client
                     .target(RESOURCE.baseUri())
-                    .path("home/device")
+                    .path("home/workflow")
                     .request()
                     .get();
 
             assertThat(response.getStatus()).isEqualTo(200);
 
-            var devices = response.readEntity(new GenericType<List<Device>>(){});
+            var workflows = response.readEntity(new GenericType<List<Workflow>>(){});
 
-            assertThat(devices).isEmpty();
+            assertThat(workflows).isEmpty();
         }
     }
 
     @Nested
-    class CreateDevice {
+    class CreateWorkflow {
 
         @Test
         void shouldReturn201_WithNewId() {
-            var device = Device.builder()
+            var workflow = Workflow.builder()
                     .name(NAME)
-                    .deviceType(Device.DeviceType.THERMOSTAT)
-                    .deviceTypeId(20L)
+                    .stepJson("[]")
                     .build();
 
-            when(DEVICE_DAO.create(any(Device.class))).thenReturn(1L);
+            when(WORKFLOW_DAO.create(any(Workflow.class))).thenReturn(1L);
 
             var response = client
                     .target(RESOURCE.baseUri())
-                    .path("home/device/register")
+                    .path("home/workflow")
                     .request()
-                    .post(json(device));
+                    .post(json(workflow));
 
             assertThat(response.getStatus()).isEqualTo(201);
             assertThat(response.readEntity(new GenericType<Map<String, Long>>(){}).get("id")).isEqualTo(1L);
@@ -128,21 +125,21 @@ class DeviceResourceTest {
     }
 
     @Nested
-    class DeleteDevice {
+    class DeleteWorkflow {
 
         @Test
-        void shouldDeleteDevice() {
-            when(DEVICE_DAO.deleteDevice(1L)).thenReturn(1);
+        void shouldDeleteWorkflow() {
+            when(WORKFLOW_DAO.deleteWorkflow(1L)).thenReturn(1);
 
             var response = client
                     .target(RESOURCE.baseUri())
-                    .path("home/device/{id}")
+                    .path("home/workflow/{id}")
                     .resolveTemplate("id", 1L)
                     .request()
                     .delete();
 
             assertThat(response.getStatus()).isEqualTo(202);
-            verify(DEVICE_DAO).deleteDevice(1L);
+            verify(WORKFLOW_DAO).deleteWorkflow(1L);
         }
     }
 }

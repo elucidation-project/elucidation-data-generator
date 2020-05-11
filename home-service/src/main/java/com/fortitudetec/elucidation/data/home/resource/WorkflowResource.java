@@ -2,8 +2,8 @@ package com.fortitudetec.elucidation.data.home.resource;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
-import com.fortitudetec.elucidation.data.home.db.DeviceDao;
-import com.fortitudetec.elucidation.data.home.model.Device;
+import com.fortitudetec.elucidation.data.home.db.WorkflowDao;
+import com.fortitudetec.elucidation.data.home.model.Workflow;
 
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
@@ -17,30 +17,29 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
-@Path("/home/device")
+@Path("/home/workflow")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class DeviceResource {
+public class WorkflowResource {
 
-    private DeviceDao dao;
+    private WorkflowDao dao;
 
-    public DeviceResource(DeviceDao dao) {
+    public WorkflowResource(WorkflowDao dao) {
         this.dao = dao;
     }
 
     @GET
     @Timed
     @ExceptionMetered
-    public Response listRegisteredDevices() {
+    public Response listWorkflows() {
         return Response.ok(dao.findAll()).build();
     }
 
     @POST
-    @Path("/register")
     @Timed
     @ExceptionMetered
-    public Response registerDevice(@BeanParam Device device) {
-        long id = dao.create(device);
+    public Response createWorkflow(@BeanParam Workflow workflow) {
+        long id = dao.create(workflow);
 
         return Response.status(201).entity(Map.of("id", id)).build();
     }
@@ -49,9 +48,8 @@ public class DeviceResource {
     @Path("/{id}")
     @Timed
     @ExceptionMetered
-    public Response deleteDevice(@PathParam("id") long id) {
-        dao.deleteDevice(id);
+    public Response deleteWorkflow(@PathParam("id") long id) {
+        dao.deleteWorkflow(id);
         return Response.accepted().build();
     }
-
 }

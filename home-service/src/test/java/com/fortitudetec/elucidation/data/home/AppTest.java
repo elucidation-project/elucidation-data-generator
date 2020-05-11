@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fortitudetec.elucidation.data.home.config.AppConfig;
 import com.fortitudetec.elucidation.data.home.resource.DeviceResource;
+import com.fortitudetec.elucidation.data.home.resource.WorkflowResource;
 import io.dropwizard.testing.ConfigOverride;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit5.DropwizardAppExtension;
@@ -42,6 +43,7 @@ class AppTest {
     @Test
     void testRun() {
         assertThat(APP.getEnvironment().jersey().getResourceConfig().isRegistered(DeviceResource.class)).isTrue();
+        assertThat(APP.getEnvironment().jersey().getResourceConfig().isRegistered(WorkflowResource.class)).isTrue();
     }
 
 }
