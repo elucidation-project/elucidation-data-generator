@@ -9,4 +9,13 @@ dependencies {
 
 shadowJar {
     archiveName 'doorbell.jar'
+    mergeServiceFiles()
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+}
+
+docker {
+    dependsOn shadowJar
+    name 'doorbell:latest'
+    files tasks.shadowJar.outputs, 'config.yml'
 }

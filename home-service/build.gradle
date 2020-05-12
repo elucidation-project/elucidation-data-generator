@@ -9,4 +9,13 @@ dependencies {
 
 shadowJar {
     archiveName 'home.jar'
+    mergeServiceFiles()
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+}
+
+docker {
+    dependsOn shadowJar
+    name 'home:latest'
+    files tasks.shadowJar.outputs, 'config.yml'
 }

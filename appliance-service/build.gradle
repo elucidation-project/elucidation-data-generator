@@ -9,4 +9,13 @@ dependencies {
 
 shadowJar {
     archiveName 'appliance.jar'
+    mergeServiceFiles()
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+}
+
+docker {
+    dependsOn shadowJar
+    name 'appliance:latest'
+    files tasks.shadowJar.outputs, 'config.yml'
 }

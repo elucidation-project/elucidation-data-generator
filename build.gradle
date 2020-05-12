@@ -1,5 +1,6 @@
 plugins {
     id("com.github.johnrengelman.shadow") version "5.2.0" apply false
+    id("com.palantir.docker") version '0.25.0' apply false
 }
 
 allprojects {
@@ -15,6 +16,7 @@ allprojects {
 subprojects {
     apply plugin: 'application'
     apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'com.palantir.docker'
 
     ext {
         // Runtime dependency versions
