@@ -1,5 +1,6 @@
 package com.fortitudetec.elucidation.data.appliance;
 
+import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
 import com.fortitudetec.elucidation.data.appliance.config.AppConfig;
 import com.fortitudetec.elucidation.data.appliance.db.ApplianceDao;
 import com.fortitudetec.elucidation.data.appliance.resource.ApplianceResource;
@@ -37,13 +38,19 @@ public class App extends Application<AppConfig> {
 		var jdbi = setupJdbi(config, env);
 		var doorbellDao = jdbi.onDemand(ApplianceDao.class);
 
-		env.jersey().register(new ApplianceResource(doorbellDao));
+		var eventRecorder = setupEventRecorder();
+		env.jersey().register(new ApplianceResource(doorbellDao, eventRecorder));
 	}
 
 	private Jdbi setupJdbi(AppConfig config, Environment env) {
 		var jdbi = new JdbiFactory().build(env, config.getDataSourceFactory(), "Appliance-Service-Data-Source");
 		jdbi.installPlugin(new SqlObjectPlugin());
 		return jdbi;
+	}
+
+	private ElucidationEventRecorder setupEventRecorder() {
+		// When using docker compose, elucidation will resolve
+		return new ElucidationEventRecorder("http://elucidation:8080");
 	}
 }
 

@@ -10,6 +10,9 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
+import com.fortitudetec.elucidation.client.RecorderResult;
+import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.data.home.db.WorkflowDao;
 import com.fortitudetec.elucidation.data.home.model.Workflow;
 import io.dropwizard.testing.junit5.DropwizardClientExtension;
@@ -27,6 +30,7 @@ import javax.ws.rs.core.GenericType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("java:S100")
 @DisplayName("WorkflowResource")
@@ -34,9 +38,10 @@ import java.util.Map;
 class WorkflowResourceTest {
 
     private static final WorkflowDao WORKFLOW_DAO = mock(WorkflowDao.class);
+    private static final ElucidationEventRecorder RECORDER = mock(ElucidationEventRecorder.class);
 
     private static final DropwizardClientExtension RESOURCE
-            = new DropwizardClientExtension(new WorkflowResource(WORKFLOW_DAO));
+            = new DropwizardClientExtension(new WorkflowResource(WORKFLOW_DAO, RECORDER));
     private static final String NAME = "My First Workflow";
 
     private Client client;
@@ -44,6 +49,7 @@ class WorkflowResourceTest {
     @BeforeEach
     void setUp() {
         client = ClientBuilder.newClient();
+        when(RECORDER.recordNewEvent(any(ConnectionEvent.class))).thenReturn(CompletableFuture.completedFuture(RecorderResult.ok()));
     }
 
     @AfterEach

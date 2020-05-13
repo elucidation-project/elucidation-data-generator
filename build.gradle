@@ -21,6 +21,7 @@ subprojects {
     ext {
         // Runtime dependency versions
         dropwizardVersion = '2.0.8'
+        elucidationVersion = '2.0.2'
 
         // Provided dependency versions
         lombokVersion = '1.18.12'
@@ -32,6 +33,7 @@ subprojects {
     }
 
     dependencies {
+        implementation "com.fortitudetec:elucidation-client:${elucidationVersion}"
         implementation "io.dropwizard:dropwizard-core:${dropwizardVersion}"
 
         compileOnly "org.projectlombok:lombok:${lombokVersion}"

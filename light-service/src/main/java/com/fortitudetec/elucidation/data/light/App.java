@@ -1,5 +1,6 @@
 package com.fortitudetec.elucidation.data.light;
 
+import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
 import com.fortitudetec.elucidation.data.light.config.AppConfig;
 import com.fortitudetec.elucidation.data.light.db.SmartLightDao;
 import com.fortitudetec.elucidation.data.light.resource.SmartLightResource;
@@ -37,13 +38,19 @@ public class App extends Application<AppConfig> {
         var jdbi = setupJdbi(config, env);
         var lightDao = jdbi.onDemand(SmartLightDao.class);
 
-        env.jersey().register(new SmartLightResource(lightDao));
+        var eventRecorder = setupEventRecorder();
+        env.jersey().register(new SmartLightResource(lightDao, eventRecorder));
     }
 
     private Jdbi setupJdbi(AppConfig config, Environment env) {
         var jdbi = new JdbiFactory().build(env, config.getDataSourceFactory(), "Light-Service-Data-Source");
         jdbi.installPlugin(new SqlObjectPlugin());
         return jdbi;
+    }
+
+    private ElucidationEventRecorder setupEventRecorder() {
+        // When using docker compose, elucidation will resolve
+        return new ElucidationEventRecorder("http://elucidation:8080");
     }
 }
 

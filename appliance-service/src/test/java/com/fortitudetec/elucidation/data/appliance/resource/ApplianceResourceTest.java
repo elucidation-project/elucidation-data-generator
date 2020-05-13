@@ -10,6 +10,9 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
+import com.fortitudetec.elucidation.client.RecorderResult;
+import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.data.appliance.db.ApplianceDao;
 import com.fortitudetec.elucidation.data.appliance.model.Appliance;
 import io.dropwizard.testing.junit5.DropwizardClientExtension;
@@ -28,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("java:S100")
 @DisplayName("ApplianceResource")
@@ -35,9 +39,10 @@ import java.util.Optional;
 class ApplianceResourceTest {
 
     private static final ApplianceDao APPLIANCE_DAO = mock(ApplianceDao.class);
+    private static final ElucidationEventRecorder RECORDER = mock(ElucidationEventRecorder.class);
 
     private static final DropwizardClientExtension RESOURCE
-            = new DropwizardClientExtension(new ApplianceResource(APPLIANCE_DAO));
+            = new DropwizardClientExtension(new ApplianceResource(APPLIANCE_DAO, RECORDER));
     private static final String NAME = "My First Appliance";
 
     private Client client;
@@ -45,6 +50,7 @@ class ApplianceResourceTest {
     @BeforeEach
     void setUp() {
         client = ClientBuilder.newClient();
+        when(RECORDER.recordNewEvent(any(ConnectionEvent.class))).thenReturn(CompletableFuture.completedFuture(RecorderResult.ok()));
     }
 
     @AfterEach

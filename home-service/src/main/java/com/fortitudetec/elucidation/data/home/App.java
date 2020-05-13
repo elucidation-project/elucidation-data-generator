@@ -1,5 +1,6 @@
 package com.fortitudetec.elucidation.data.home;
 
+import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
 import com.fortitudetec.elucidation.data.home.config.AppConfig;
 import com.fortitudetec.elucidation.data.home.db.DeviceDao;
 import com.fortitudetec.elucidation.data.home.db.WorkflowDao;
@@ -41,14 +42,20 @@ public class App extends Application<AppConfig> {
 		var deviceDao = jdbi.onDemand(DeviceDao.class);
 		var workflowDao = jdbi.onDemand(WorkflowDao.class);
 
-		env.jersey().register(new DeviceResource(deviceDao));
-		env.jersey().register(new WorkflowResource(workflowDao));
+		var eventRecorder = setupEventRecorder();
+		env.jersey().register(new DeviceResource(deviceDao, eventRecorder));
+		env.jersey().register(new WorkflowResource(workflowDao, eventRecorder));
 	}
 
 	private Jdbi setupJdbi(AppConfig config, Environment env) {
 		var jdbi = new JdbiFactory().build(env, config.getDataSourceFactory(), "Home-Service-Data-Source");
 		jdbi.installPlugin(new SqlObjectPlugin());
 		return jdbi;
+	}
+
+	private ElucidationEventRecorder setupEventRecorder() {
+		// When using docker compose, elucidation will resolve
+		return new ElucidationEventRecorder("http://elucidation:8080");
 	}
 }
 

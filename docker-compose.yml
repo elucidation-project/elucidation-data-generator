@@ -20,4 +20,7 @@ services:
     image: "home:latest"
     ports:
       - "127.0.0.1:9004:8080"
-      -
+  elucidation:
+    image: "fortitudetec/elucidation-server"
+    ports:
+      - "127.0.0.1:9100:8080"

@@ -1,5 +1,6 @@
 package com.fortitudetec.elucidation.data.thermostat;
 
+import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
 import com.fortitudetec.elucidation.data.thermostat.config.AppConfig;
 import com.fortitudetec.elucidation.data.thermostat.db.ThermostatDao;
 import com.fortitudetec.elucidation.data.thermostat.resource.ThermostatResource;
@@ -37,13 +38,19 @@ public class App extends Application<AppConfig> {
 		var jdbi = setupJdbi(config, env);
 		var thermostatDao = jdbi.onDemand(ThermostatDao.class);
 
-		env.jersey().register(new ThermostatResource(thermostatDao));
+		var eventRecorder = setupEventRecorder();
+		env.jersey().register(new ThermostatResource(thermostatDao, eventRecorder));
 	}
 
 	private Jdbi setupJdbi(AppConfig config, Environment env) {
 		var jdbi = new JdbiFactory().build(env, config.getDataSourceFactory(), "Thermostat-Service-Data-Source");
 		jdbi.installPlugin(new SqlObjectPlugin());
 		return jdbi;
+	}
+
+	private ElucidationEventRecorder setupEventRecorder() {
+		// When using docker compose, elucidation will resolve
+		return new ElucidationEventRecorder("http://elucidation:8080");
 	}
 }
 
