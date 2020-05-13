@@ -1,6 +1,7 @@
 package com.fortitudetec.elucidation.data.thermostat.resource;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.joining;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
@@ -43,8 +44,8 @@ public class ThermostatResource {
 
     private static final String CONNECTION_IDENTIFIER_FORMAT = "%s %s";
 
-    private ThermostatDao dao;
-    private ElucidationClient<ResourceInfo> client;
+    private final ThermostatDao dao;
+    private final ElucidationClient<ResourceInfo> client;
 
     public ThermostatResource(ThermostatDao dao, ElucidationEventRecorder recorder) {
         this.dao = dao;
@@ -129,6 +130,11 @@ public class ThermostatResource {
 
     private void recordEvent(ResourceInfo info) {
         client.recordNewEvent(info).whenComplete((result, exception) -> {
+            if (nonNull(exception)) {
+                LOG.error("An error occurred recording an event.", exception);
+                return;
+            }
+
             switch (result.getStatus()) {
                 case RECORDED_OK:
                     LOG.info("Successfully recorded event to Elucidation");

@@ -1,6 +1,7 @@
 package com.fortitudetec.elucidation.data.home.resource;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.joining;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
@@ -40,8 +41,8 @@ public class WorkflowResource {
 
     private static final String CONNECTION_IDENTIFIER_FORMAT = "%s %s";
 
-    private WorkflowDao dao;
-    private ElucidationClient<ResourceInfo> client;
+    private final WorkflowDao dao;
+    private final ElucidationClient<ResourceInfo> client;
 
     public WorkflowResource(WorkflowDao dao, ElucidationEventRecorder recorder) {
         this.dao = dao;
@@ -88,6 +89,11 @@ public class WorkflowResource {
 
     private void recordEvent(ResourceInfo info) {
         client.recordNewEvent(info).whenComplete((result, exception) -> {
+            if (nonNull(exception)) {
+                LOG.error("An error occurred recording an event.", exception);
+                return;
+            }
+
             switch (result.getStatus()) {
                 case RECORDED_OK:
                     LOG.info("Successfully recorded event to Elucidation");
