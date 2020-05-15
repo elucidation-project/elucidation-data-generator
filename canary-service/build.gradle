@@ -1,0 +1,17 @@
+mainClassName = "com.fortitudetec.elucidation.data.canary.App"
+
+dependencies {
+}
+
+shadowJar {
+    archiveName 'canary.jar'
+    mergeServiceFiles()
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+}
+
+docker {
+    dependsOn shadowJar
+    name 'canary:latest'
+    files tasks.shadowJar.outputs, 'config.yml'
+}

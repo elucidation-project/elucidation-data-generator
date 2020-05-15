@@ -35,6 +35,13 @@ services:
       - elucidation
     ports:
       - "127.0.0.1:9004:8080"
+  canary:
+    image: "canary:latest"
+    depends_on:
+      - elucidation
+      - home
+    ports:
+      - "127.0.0.1:9005:8080"
   elucidation:
     image: "fortitudetec/elucidation-server"
     ports:
