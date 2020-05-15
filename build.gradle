@@ -22,6 +22,7 @@ subprojects {
         // Runtime dependency versions
         dropwizardVersion = '2.0.8'
         elucidationVersion = '2.0.2'
+        artemisVersion = '2.12.0'
 
         // Provided dependency versions
         lombokVersion = '1.18.12'
@@ -35,6 +36,7 @@ subprojects {
     dependencies {
         implementation "com.fortitudetec:elucidation-client:${elucidationVersion}"
         implementation "io.dropwizard:dropwizard-core:${dropwizardVersion}"
+        implementation "org.apache.activemq:artemis-jms-client:${artemisVersion}"
 
         compileOnly "org.projectlombok:lombok:${lombokVersion}"
         annotationProcessor "org.projectlombok:lombok:${lombokVersion}"

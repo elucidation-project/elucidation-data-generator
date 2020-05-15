@@ -2,25 +2,47 @@ version: '3'
 services:
   appliance:
     image: "appliance:latest"
+    depends_on:
+      - artemis
+      - elucidation
     ports:
       - "127.0.0.1:9000:8080"
   doorbell:
     image: "doorbell:latest"
+    depends_on:
+      - artemis
+      - elucidation
     ports:
       - "127.0.0.1:9001:8080"
   light:
     image: "light:latest"
+    depends_on:
+      - artemis
+      - elucidation
     ports:
       - "127.0.0.1:9002:8080"
   thermostat:
     image: "thermostat:latest"
+    depends_on:
+      - artemis
+      - elucidation
     ports:
       - "127.0.0.1:9003:8080"
   home:
     image: "home:latest"
+    depends_on:
+      - artemis
+      - elucidation
     ports:
       - "127.0.0.1:9004:8080"
   elucidation:
     image: "fortitudetec/elucidation-server"
     ports:
       - "127.0.0.1:9100:8080"
+  artemis:
+    image: "vromero/activemq-artemis"
+    environment:
+      - ARTEMIS_USERNAME=elucidation
+      - ARTEMIS_PASSWORD=password
+    ports:
+    - "127.0.0.1:8161:8161"
