@@ -15,7 +15,7 @@ import com.fortitudetec.elucidation.data.doorbell.db.DoorbellDao;
 import com.fortitudetec.elucidation.data.doorbell.model.Doorbell;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.ws.rs.BeanParam;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -83,7 +83,7 @@ public class DoorbellResource {
     @Path("/register")
     @Timed
     @ExceptionMetered
-    public Response registerDoorbell(@BeanParam Doorbell doorbell, @Context ResourceInfo info) {
+    public Response registerDoorbell(@NotNull Doorbell doorbell, @Context ResourceInfo info) {
         recordEvent(info);
 
         long id = dao.create(doorbell);

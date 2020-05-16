@@ -17,7 +17,16 @@ public class RunTestsJob implements Runnable {
     }
 
     public void run() {
-        //TODO: Build test runners
         LOG.info("Running data generation tests!");
+
+        new CrudDeviceCanary(httpClient, eventRecorder).runCanaryTest();
+
+        writeOutElucidationEvents();
     }
+
+    private void writeOutElucidationEvents() {
+        LOG.info("Writing out events to elucidation-events.csv");
+        // TODO: Implement this
+    }
+
 }

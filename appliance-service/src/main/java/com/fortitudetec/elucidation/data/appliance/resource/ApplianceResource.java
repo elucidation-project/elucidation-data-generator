@@ -15,7 +15,7 @@ import com.fortitudetec.elucidation.data.appliance.db.ApplianceDao;
 import com.fortitudetec.elucidation.data.appliance.model.Appliance;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.ws.rs.BeanParam;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -83,7 +83,7 @@ public class ApplianceResource {
     @Path("/register")
     @Timed
     @ExceptionMetered
-    public Response registerAppliance(@BeanParam Appliance appliance, @Context ResourceInfo info) {
+    public Response registerAppliance(@NotNull Appliance appliance, @Context ResourceInfo info) {
         recordEvent(info);
 
         long id = dao.create(appliance);

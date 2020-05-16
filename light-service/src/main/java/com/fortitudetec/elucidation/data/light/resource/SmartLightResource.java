@@ -15,7 +15,7 @@ import com.fortitudetec.elucidation.data.light.db.SmartLightDao;
 import com.fortitudetec.elucidation.data.light.model.SmartLight;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.ws.rs.BeanParam;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -86,7 +86,7 @@ public class SmartLightResource {
     @Path("/register")
     @Timed
     @ExceptionMetered
-    public Response registerThermostat(@BeanParam SmartLight light, @Context ResourceInfo info) {
+    public Response registerThermostat(@NotNull SmartLight light, @Context ResourceInfo info) {
         recordEvent(info);
 
         long id = dao.create(light);

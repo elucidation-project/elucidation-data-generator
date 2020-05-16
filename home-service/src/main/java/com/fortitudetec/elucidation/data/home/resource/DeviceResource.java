@@ -15,7 +15,7 @@ import com.fortitudetec.elucidation.data.home.db.DeviceDao;
 import com.fortitudetec.elucidation.data.home.model.Device;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.ws.rs.BeanParam;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -70,7 +70,7 @@ public class DeviceResource {
     @Path("/register")
     @Timed
     @ExceptionMetered
-    public Response registerDevice(@BeanParam Device device, @Context ResourceInfo info) {
+    public Response registerDevice(@NotNull Device device, @Context ResourceInfo info) {
         recordEvent(info);
 
         long id = dao.create(device);

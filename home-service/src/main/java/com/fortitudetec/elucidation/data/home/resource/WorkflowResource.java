@@ -15,7 +15,7 @@ import com.fortitudetec.elucidation.data.home.db.WorkflowDao;
 import com.fortitudetec.elucidation.data.home.model.Workflow;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.ws.rs.BeanParam;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -68,7 +68,7 @@ public class WorkflowResource {
     @POST
     @Timed
     @ExceptionMetered
-    public Response createWorkflow(@BeanParam Workflow workflow, @Context ResourceInfo info) {
+    public Response createWorkflow(@NotNull Workflow workflow, @Context ResourceInfo info) {
         recordEvent(info);
 
         long id = dao.create(workflow);
