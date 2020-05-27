@@ -1,4 +1,4 @@
-version: '3'
+version: "3.7"
 services:
   appliance:
     image: "appliance:latest"
@@ -42,6 +42,10 @@ services:
       - home
     ports:
       - "127.0.0.1:9005:8080"
+    volumes:
+      - type: "bind"
+        source: "./export_data"
+        target: "/service/data"
   elucidation:
     image: "fortitudetec/elucidation-server"
     ports:

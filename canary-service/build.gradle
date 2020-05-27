@@ -1,6 +1,7 @@
 mainClassName = "com.fortitudetec.elucidation.data.canary.App"
 
 dependencies {
+    implementation 'org.apache.commons:commons-csv:1.8'
 }
 
 shadowJar {

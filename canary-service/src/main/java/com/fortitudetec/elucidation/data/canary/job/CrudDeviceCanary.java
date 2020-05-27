@@ -20,6 +20,7 @@ public class CrudDeviceCanary {
 
     private static final String BRAND = "brand";
     private static final String LOCATION = "location";
+    private static final String DEVICE_TYPE_ID = "deviceTypeId";
     private final Client httpClient;
     private final ElucidationClient<String> client;
 
@@ -74,7 +75,7 @@ public class CrudDeviceCanary {
         }
     }
 
-    private long createAndRegisterLight(String name, String location) {
+    private int createAndRegisterLight(String name, String location) {
         client.recordNewEvent("POST /light/register");
         var lightResponse = httpClient.target("http://light:8080/light/register")
                 .request()
@@ -92,7 +93,7 @@ public class CrudDeviceCanary {
             LOG.warn("Unable to save light. Status: {} Body: {}", lightResponse.getStatus(), lightResponse.readEntity(String.class));
         }
 
-        return -1L;
+        return -1;
     }
 
     private void createAndRegisterDoorbell() {
@@ -123,14 +124,14 @@ public class CrudDeviceCanary {
         }
     }
 
-    private long registerDevice(String name, long id, String type) {
+    private int registerDevice(String name, long id, String type) {
         client.recordNewEvent("POST /home/device/register");
         var response = httpClient.target("http://home:8080/home/device/register")
                 .request()
-                .post(json(Map.of("name", name, "deviceType", type, "deviceTypeId", id)));
+                .post(json(Map.of("name", name, "deviceType", type, DEVICE_TYPE_ID, id)));
 
         if (response.getStatus() == 201) {
-            var deviceId = response.readEntity(new GenericType<Map<String, Long>>(){}).get("id");
+            var deviceId = response.readEntity(new GenericType<Map<String, Integer>>(){}).get("id");
 
             LOG.info("{} {} created with id: {}", type, name, deviceId);
             return deviceId;
@@ -138,24 +139,26 @@ public class CrudDeviceCanary {
             LOG.warn("Unable to save device. Status: {} Body: {}", response.getStatus(), response.readEntity(String.class));
         }
 
-        return -1L;
+        return -1;
     }
 
-    private void retrieveAndRemoveLight(long deviceId) {
+    private void retrieveAndRemoveLight(int deviceId) {
         client.recordNewEvent("GET /home/device");
         var deviceResponse = httpClient.target("http://home:8080/home/device")
                 .request()
                 .get();
 
         if (deviceResponse.getStatus() == 200) {
+            LOG.info("Retrieved all devices");
             var device = deviceResponse.readEntity(new GenericType<List<Map<String, Object>>>(){}).stream()
-                    .filter(deviceMap -> deviceId == (long)deviceMap.get("id"))
+                    .filter(deviceMap -> deviceId == (int) deviceMap.get("id"))
                     .findFirst()
                     .orElseThrow();
 
+            LOG.info("Found light to delete. {}", device.get(DEVICE_TYPE_ID));
             client.recordNewEvent("DELETE /light/{id}");
             var lightResponse = httpClient.target("http://light:8080/light/{id}")
-                    .resolveTemplate("id", device.get("deviceTypeId"))
+                    .resolveTemplate("id", device.get(DEVICE_TYPE_ID))
                     .request()
                     .delete();
 

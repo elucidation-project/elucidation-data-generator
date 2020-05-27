@@ -11,3 +11,6 @@ out
 
 # Junit test database
 :memory::
+
+# Export data
+export_data

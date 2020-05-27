@@ -15,9 +15,9 @@ From the root directory run the following command:
 
 This will start all the child service containers.
 
-### Items still not complete
-1. Need to integrate elucidation client into services
-2. Need to add elucidation server to `docker-compose`
-3. Need to integrate asynchronous messaging clients into services
-4. Need to add ActiveMQ Artemis server to `docker-compose`
-5. Need to build and integrate the canary server to run the tests and spit out the collected data
+## Getting the generated data
+Once the test suite is complete, a message will appear telling you that the data has been generated.
+You can find the generated data in `./export_data/` and the file will be named `elucidation-events-{date}.csv` where `date` is the current date/time.
+
+## Current tests built to generate data
+* Basic CRUD actions

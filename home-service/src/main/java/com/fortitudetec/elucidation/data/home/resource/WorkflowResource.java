@@ -3,6 +3,8 @@ package com.fortitudetec.elucidation.data.home.resource;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.stripEnd;
+import static org.apache.commons.lang3.StringUtils.stripStart;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
@@ -39,7 +41,7 @@ import java.util.stream.Stream;
 @Slf4j
 public class WorkflowResource {
 
-    private static final String CONNECTION_IDENTIFIER_FORMAT = "%s %s";
+    private static final String CONNECTION_IDENTIFIER_FORMAT = "%s /%s";
 
     private final WorkflowDao dao;
     private final ElucidationClient<ResourceInfo> client;
@@ -119,6 +121,8 @@ public class WorkflowResource {
         var templatedPath = newArrayList(rootPath, methodPath).stream()
                 .filter(Objects::nonNull)
                 .map(Path::value)
+                .map(path -> stripStart(path, "/"))
+                .map(path -> stripEnd(path, "/"))
                 .collect(joining("/"));
 
         var method = Optional.ofNullable(info.getResourceMethod())
