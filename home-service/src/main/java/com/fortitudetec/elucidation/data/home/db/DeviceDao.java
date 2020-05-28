@@ -27,4 +27,7 @@ public interface DeviceDao {
 
     @SqlUpdate("delete from devices where id = :id")
     int deleteDevice(@Bind("id") long id);
+
+    @SqlQuery("select * from devices where name = :name and device_type = :type")
+    Optional<Device> findByNameAndType(@Bind("name") String name, @Bind("type") Device.DeviceType type);
 }

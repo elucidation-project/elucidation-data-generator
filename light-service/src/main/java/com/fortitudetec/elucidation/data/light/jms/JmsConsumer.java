@@ -1,4 +1,4 @@
-package com.fortitudetec.elucidation.data.appliance.jms;
+package com.fortitudetec.elucidation.data.light.jms;
 
 import static java.util.Objects.nonNull;
 
@@ -8,9 +8,9 @@ import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
 import com.fortitudetec.elucidation.common.definition.JmsCommunicationDefinition;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.common.model.Direction;
-import com.fortitudetec.elucidation.data.appliance.db.ApplianceDao;
-import com.fortitudetec.elucidation.data.appliance.model.Appliance;
-import com.fortitudetec.elucidation.data.appliance.model.Event;
+import com.fortitudetec.elucidation.data.light.db.SmartLightDao;
+import com.fortitudetec.elucidation.data.light.model.Event;
+import com.fortitudetec.elucidation.data.light.model.SmartLight;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 
@@ -23,11 +23,11 @@ import java.util.Optional;
 @Slf4j
 public class JmsConsumer implements MessageListener {
 
-    private final ApplianceDao dao;
+    private final SmartLightDao dao;
     private final ElucidationClient<Event> elucidationClient;
     private final ObjectMapper json;
 
-    public JmsConsumer(ApplianceDao dao, ElucidationEventRecorder recorder, ObjectMapper json) {
+    public JmsConsumer(SmartLightDao dao, ElucidationEventRecorder recorder, ObjectMapper json) {
         this.dao = dao;
         this.json = json;
 
@@ -36,7 +36,7 @@ public class JmsConsumer implements MessageListener {
                 .communicationType(communicationDef.getCommunicationType())
                 .connectionIdentifier(evt.getAction())
                 .eventDirection(Direction.INBOUND)
-                .serviceName("appliance-service")
+                .serviceName("light-service")
                 .observedAt(System.currentTimeMillis())
                 .build()));
     }
@@ -47,7 +47,7 @@ public class JmsConsumer implements MessageListener {
             var factory = new ActiveMQConnectionFactory("tcp://artemis:61616");
             var jmsContext = factory.createContext("elucidation", "password", JMSContext.AUTO_ACKNOWLEDGE);
 
-            jmsContext.setClientID("appliance-service");
+            jmsContext.setClientID("light-service");
 
             var topic = jmsContext.createTopic("iotEvent");
             var consumer = jmsContext.createConsumer(topic);
@@ -66,11 +66,12 @@ public class JmsConsumer implements MessageListener {
 
             var evt = json.readValue(txtMsg.getText(), Event.class);
 
-            if ("appliance".equalsIgnoreCase(evt.getAction())) {
-                LOG.info("Message is for appliances, so processing");
+            if ("light".equalsIgnoreCase(evt.getAction())) {
+                LOG.info("Message is for light, so processing");
                 recordEvent(evt);
 
-                dao.updateState(Appliance.State.valueOf((String) evt.getValue().get("state")), evt.getIotLookup());
+                dao.setColor(SmartLight.Color.valueOf((String) evt.getValue().get("color")), evt.getIotLookup());
+                dao.setBrightness((Integer) evt.getValue().get("brightness"), evt.getIotLookup());
             }
         } catch (Exception e) {
             LOG.error("Problem reading message", e);

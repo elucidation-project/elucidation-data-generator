@@ -15,6 +15,7 @@ import com.fortitudetec.elucidation.client.RecorderResult;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.data.home.db.WorkflowDao;
 import com.fortitudetec.elucidation.data.home.model.Workflow;
+import com.fortitudetec.elucidation.data.home.service.WorkflowService;
 import io.dropwizard.testing.junit5.DropwizardClientExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import org.junit.jupiter.api.AfterEach;
@@ -39,9 +40,10 @@ class WorkflowResourceTest {
 
     private static final WorkflowDao WORKFLOW_DAO = mock(WorkflowDao.class);
     private static final ElucidationEventRecorder RECORDER = mock(ElucidationEventRecorder.class);
+    private static final WorkflowService SERVICE = mock(WorkflowService.class);
 
     private static final DropwizardClientExtension RESOURCE
-            = new DropwizardClientExtension(new WorkflowResource(WORKFLOW_DAO, RECORDER));
+            = new DropwizardClientExtension(new WorkflowResource(WORKFLOW_DAO, RECORDER, SERVICE));
     private static final String NAME = "My First Workflow";
 
     private Client client;

@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
-import javax.ws.rs.client.ClientBuilder;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -44,7 +43,7 @@ public class App extends Application<AppConfig> {
 
 		var eventRecorder = setupEventRecorder();
 		env.jersey().register(new ApplianceResource(applianceDao, eventRecorder));
-		startConsumer(applianceDao, env);
+		startConsumer(applianceDao, env, eventRecorder);
 	}
 
 	private Jdbi setupJdbi(AppConfig config, Environment env) {
@@ -58,12 +57,11 @@ public class App extends Application<AppConfig> {
 		return new ElucidationEventRecorder("http://elucidation:8080");
 	}
 
-	private void startConsumer(ApplianceDao applianceDao, Environment env) {
-		var httpClient = ClientBuilder.newClient();
+	private void startConsumer(ApplianceDao applianceDao, Environment env, ElucidationEventRecorder eventRecorder) {
 		var executor = env.lifecycle().scheduledExecutorService("jms").build();
 
 		executor.schedule(() -> {
-			var jmsConsumer = new JmsConsumer(applianceDao, httpClient);
+			var jmsConsumer = new JmsConsumer(applianceDao, eventRecorder, env.getObjectMapper());
 			jmsConsumer.start();
 		}, 30, TimeUnit.SECONDS);
 	}

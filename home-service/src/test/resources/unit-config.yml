@@ -10,6 +10,8 @@ server:
     - type: http
       port: 8081
 
+artemisUrl: vm://localhost:61616
+
 logging:
   level: INFO
   loggers:

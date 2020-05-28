@@ -1,11 +1,14 @@
 package com.fortitudetec.elucidation.data.home;
 
+import static java.util.Objects.nonNull;
+
 import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
 import com.fortitudetec.elucidation.data.home.config.AppConfig;
 import com.fortitudetec.elucidation.data.home.db.DeviceDao;
 import com.fortitudetec.elucidation.data.home.db.WorkflowDao;
 import com.fortitudetec.elucidation.data.home.resource.DeviceResource;
 import com.fortitudetec.elucidation.data.home.resource.WorkflowResource;
+import com.fortitudetec.elucidation.data.home.service.WorkflowService;
 import io.dropwizard.Application;
 import io.dropwizard.db.PooledDataSourceFactory;
 import io.dropwizard.jdbi3.JdbiFactory;
@@ -18,7 +21,6 @@ import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
 import javax.jms.JMSContext;
-import javax.jms.JMSProducer;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -47,14 +49,23 @@ public class App extends Application<AppConfig> {
         var deviceDao = jdbi.onDemand(DeviceDao.class);
         var workflowDao = jdbi.onDemand(WorkflowDao.class);
 
-        var producer = startProducer(env);
-        LOG.info("Producer to Artemis is setup");
-
-        // TODO: Pass the producer in to the resources
+        var jmsContext = startContext(env, config);
 
         var eventRecorder = setupEventRecorder();
+
+        WorkflowService workflowService;
+        if (nonNull(jmsContext)) {
+            var producer = jmsContext.createProducer();
+            var topic = jmsContext.createTopic("iotEvent");
+            LOG.info("Producer to Artemis is setup");
+            workflowService = new WorkflowService(producer, topic, deviceDao, env.getObjectMapper(), eventRecorder);
+         } else {
+            workflowService = new WorkflowService(null, null, deviceDao, env.getObjectMapper(), eventRecorder);
+        }
+
+
         env.jersey().register(new DeviceResource(deviceDao, eventRecorder));
-        env.jersey().register(new WorkflowResource(workflowDao, eventRecorder));
+        env.jersey().register(new WorkflowResource(workflowDao, eventRecorder, workflowService));
     }
 
     private Jdbi setupJdbi(AppConfig config, Environment env) {
@@ -68,10 +79,10 @@ public class App extends Application<AppConfig> {
         return new ElucidationEventRecorder("http://elucidation:8080");
     }
 
-    private JMSProducer startProducer(Environment env) {
+    private JMSContext startContext(Environment env, AppConfig config) {
         var executor = env.lifecycle().scheduledExecutorService("jms").build();
 
-        var future = executor.schedule(this::buildProducer, 30, TimeUnit.SECONDS);
+        var future = executor.schedule(() -> createContext(config), 30, TimeUnit.SECONDS);
 
         try {
             return future.get();
@@ -81,13 +92,13 @@ public class App extends Application<AppConfig> {
         }
     }
 
-    private JMSProducer buildProducer() {
-        try (var factory = new ActiveMQConnectionFactory("tcp://artemis:61616");
-             var jmsContext = factory.createContext("elucidation", "password", JMSContext.AUTO_ACKNOWLEDGE)) {
+    @SuppressWarnings("java:S2095")
+    private JMSContext createContext(AppConfig config) {
+        var factory = new ActiveMQConnectionFactory(config.getArtemisUrl());
+        var jmsContext = factory.createContext("elucidation", "password", JMSContext.AUTO_ACKNOWLEDGE);
 
-            jmsContext.setClientID("home-service");
-            return jmsContext.createProducer();
-        }
+        jmsContext.setClientID("home-service");
+        return jmsContext;
     }
 }
 

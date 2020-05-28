@@ -15,12 +15,14 @@ import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.common.model.Direction;
 import com.fortitudetec.elucidation.data.home.db.WorkflowDao;
 import com.fortitudetec.elucidation.data.home.model.Workflow;
+import com.fortitudetec.elucidation.data.home.service.WorkflowService;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -45,9 +47,11 @@ public class WorkflowResource {
 
     private final WorkflowDao dao;
     private final ElucidationClient<ResourceInfo> client;
+    private final WorkflowService workflowService;
 
-    public WorkflowResource(WorkflowDao dao, ElucidationEventRecorder recorder) {
+    public WorkflowResource(WorkflowDao dao, ElucidationEventRecorder recorder, WorkflowService workflowService) {
         this.dao = dao;
+        this.workflowService = workflowService;
         var communicationDef = new HttpCommunicationDefinition();
         this.client = ElucidationClient.of(recorder, info -> Optional.of(ConnectionEvent.builder()
                 .communicationType(communicationDef.getCommunicationType())
@@ -86,6 +90,23 @@ public class WorkflowResource {
         recordEvent(info);
 
         dao.deleteWorkflow(id);
+        return Response.accepted().build();
+    }
+
+    @PUT
+    @Path("/{id}")
+    @Timed
+    @ExceptionMetered
+    public Response triggerWorkflow(@PathParam("id") long id, @Context ResourceInfo info) {
+        recordEvent(info);
+
+        var optionalWorkflow = dao.findById(id);
+
+        var workflow = optionalWorkflow.orElseThrow(() -> new NotFoundException("Can't find workflow"));
+
+        LOG.info("Triggering workflow {}", workflow.getName());
+        workflowService.runWorkflow(workflow);
+
         return Response.accepted().build();
     }
 

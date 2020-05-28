@@ -1,0 +1,64 @@
+[
+  {
+    "description": "Turn up thermostat",
+    "device": {
+      "name": "Main Floor Nest Thermostat",
+      "deviceType": "THERMOSTAT"
+    },
+    "eventAction": "temp",
+    "eventInfo": {
+      "temp": 70.2
+    },
+    "nextStepDelayInSeconds": 0
+  },
+  {
+    "description": "Turn on bedroom light",
+    "device": {
+      "name": "Master Bedroom Light",
+      "deviceType": "LIGHT"
+    },
+    "eventAction": "light",
+    "eventInfo": {
+      "color": "SOFT_WHITE",
+      "brightness": 70
+    },
+    "nextStepDelayInSeconds": 0
+  },
+  {
+    "description": "Turn on kitchen light",
+    "device": {
+      "name": "Kitchen Light",
+      "deviceType": "LIGHT"
+    },
+    "eventAction": "light",
+    "eventInfo": {
+      "color": "DAY_LIGHT",
+      "brightness": 90
+    },
+    "nextStepDelayInSeconds": 0
+  },
+  {
+    "description": "Turn on coffee machine",
+    "device": {
+      "name": "Coffee Machine",
+      "deviceType": "APPLIANCE"
+    },
+    "eventAction": "appliance",
+    "eventInfo": {
+      "state": "ON"
+    },
+    "nextStepDelayInSeconds": 0
+  },
+  {
+    "description": "Email Camera Footage - THIS IS NOT A REAL SERVICE. IT IS USED FOR TRACKING UNUSED MESSAGES",
+    "device": {
+      "name": "Garage Camera",
+      "deviceType": "CAMERA"
+    },
+    "eventAction": "camera",
+    "eventInfo": {
+      "filter": "FACES"
+    },
+    "nextStepDelayInSeconds": 0
+  }
+]

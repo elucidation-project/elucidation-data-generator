@@ -16,4 +16,6 @@ public class AppConfig extends Configuration {
     @JsonProperty("database")
     private DataSourceFactory dataSourceFactory = new DataSourceFactory();
 
+    private String artemisUrl;
+
 }

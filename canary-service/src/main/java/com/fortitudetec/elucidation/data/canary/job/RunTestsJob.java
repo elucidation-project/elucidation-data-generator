@@ -34,11 +34,18 @@ public class RunTestsJob implements Runnable {
 
         try {
             new CrudDeviceCanary(httpClient, eventRecorder).runCanaryTest();
+
+            // NOTE: This test uses devices that were set up in the test above, so if
+            // that changes, then this test might need an adjustment.
+            new GoodMorningWorkflowCanary(httpClient, eventRecorder).runCanaryTest();
         } catch (Exception e) {
             LOG.error("Test job threw an error", e);
         }
 
         try {
+            // Need to let all the async stuff go through
+            Thread.sleep(5000);
+
             writeOutElucidationEvents(now);
 
             LOG.info("*********************************************");

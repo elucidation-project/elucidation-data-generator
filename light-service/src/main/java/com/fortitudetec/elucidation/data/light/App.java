@@ -3,6 +3,7 @@ package com.fortitudetec.elucidation.data.light;
 import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
 import com.fortitudetec.elucidation.data.light.config.AppConfig;
 import com.fortitudetec.elucidation.data.light.db.SmartLightDao;
+import com.fortitudetec.elucidation.data.light.jms.JmsConsumer;
 import com.fortitudetec.elucidation.data.light.resource.SmartLightResource;
 import io.dropwizard.Application;
 import io.dropwizard.db.PooledDataSourceFactory;
@@ -13,6 +14,8 @@ import io.dropwizard.setup.Environment;
 import lombok.extern.slf4j.Slf4j;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
+
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class App extends Application<AppConfig> {
@@ -40,6 +43,7 @@ public class App extends Application<AppConfig> {
 
         var eventRecorder = setupEventRecorder();
         env.jersey().register(new SmartLightResource(lightDao, eventRecorder));
+        startConsumer(lightDao, env, eventRecorder);
     }
 
     private Jdbi setupJdbi(AppConfig config, Environment env) {
@@ -51,6 +55,15 @@ public class App extends Application<AppConfig> {
     private ElucidationEventRecorder setupEventRecorder() {
         // When using docker compose, elucidation will resolve
         return new ElucidationEventRecorder("http://elucidation:8080");
+    }
+
+    private void startConsumer(SmartLightDao lightDao, Environment env, ElucidationEventRecorder eventRecorder) {
+        var executor = env.lifecycle().scheduledExecutorService("jms").build();
+
+        executor.schedule(() -> {
+            var jmsConsumer = new JmsConsumer(lightDao, eventRecorder, env.getObjectMapper());
+            jmsConsumer.start();
+        }, 30, TimeUnit.SECONDS);
     }
 }
 

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class Device {
 
     public enum DeviceType {
-        APPLIANCE, DOORBELL, LIGHT, THERMOSTAT
+        APPLIANCE, CAMERA, DOORBELL, LIGHT, THERMOSTAT
     }
 
     private Long id;

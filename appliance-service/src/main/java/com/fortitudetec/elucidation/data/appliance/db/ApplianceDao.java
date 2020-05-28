@@ -27,4 +27,7 @@ public interface ApplianceDao {
 
     @SqlUpdate("delete from appliances where id = :id")
     int deleteAppliance(@Bind("id") long id);
+
+    @SqlUpdate("update appliances set state = :state where id = :id")
+    int updateState(@Bind("state") Appliance.State state, @Bind("id") long id);
 }
