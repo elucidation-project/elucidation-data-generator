@@ -21,6 +21,9 @@ public interface WorkflowDao {
     @SqlQuery("select * from workflows where id = :id")
     Optional<Workflow> findById(@Bind("id") long id);
 
+    @SqlQuery("select * from workflows where name = :name")
+    Optional<Workflow> findByName(@Bind("name") String name);
+
     @SqlUpdate("insert into workflows (name, step_json) values (:name, :stepJson)")
     @GetGeneratedKeys
     long create(@BindBean Workflow workflow);

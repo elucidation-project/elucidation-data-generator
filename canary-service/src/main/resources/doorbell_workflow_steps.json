@@ -1,0 +1,54 @@
+[
+  {
+    "description": "Turn all lights red",
+    "device": {
+      "name": "ALL",
+      "deviceType": "LIGHT"
+    },
+    "eventAction": "light",
+    "eventInfo": {
+      "color": "RED",
+      "brightness": 100
+    },
+    "nextStepDelayInSeconds": 5
+  },
+  {
+    "description": "Turn all lights yellow",
+    "device": {
+      "name": "ALL",
+      "deviceType": "LIGHT"
+    },
+    "eventAction": "light",
+    "eventInfo": {
+      "color": "YELLOW",
+      "brightness": 100
+    },
+    "nextStepDelayInSeconds": 5
+  },
+  {
+    "description": "Turn all lights red",
+    "device": {
+      "name": "ALL",
+      "deviceType": "LIGHT"
+    },
+    "eventAction": "light",
+    "eventInfo": {
+      "color": "RED",
+      "brightness": 100
+    },
+    "nextStepDelayInSeconds": 5
+  },
+  {
+    "description": "Turn all lights yellow",
+    "device": {
+      "name": "ALL",
+      "deviceType": "LIGHT"
+    },
+    "eventAction": "light",
+    "eventInfo": {
+      "color": "YELLOW",
+      "brightness": 100
+    },
+    "nextStepDelayInSeconds": 0
+  }
+]

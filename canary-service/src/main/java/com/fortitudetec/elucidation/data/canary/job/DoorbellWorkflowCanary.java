@@ -14,16 +14,17 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
-public class GoodMorningWorkflowCanary {
+public class DoorbellWorkflowCanary {
 
     private final Client httpClient;
     private final ElucidationClient<String> client;
 
-    public GoodMorningWorkflowCanary(Client httpClient, ElucidationEventRecorder eventRecorder) {
+    public DoorbellWorkflowCanary(Client httpClient, ElucidationEventRecorder eventRecorder) {
         this.httpClient = httpClient;
 
         var communicationDef = new HttpCommunicationDefinition();
@@ -37,23 +38,20 @@ public class GoodMorningWorkflowCanary {
     }
 
     public void runCanaryTest() {
-        LOG.info("************************************************************");
-        LOG.info("* Running canary test to perform the Good Morning workflow *");
-        LOG.info("************************************************************");
-
-        // Setup dummy device
-        createAndRegisterCamera();
+        LOG.info("********************************************************");
+        LOG.info("* Running canary test to perform the Doorbell workflow *");
+        LOG.info("********************************************************");
 
         // Create workflow and send to home service
         var workflowData = Map.of(
-                "name", "Good Morning",
-                "stepJson", readWorkflowJson("good_morning_workflow_steps.json")
+                "name", "Doorbell",
+                "stepJson", readWorkflowJson("doorbell_workflow_steps.json")
         );
 
-        var workflowId = createWorkflow(workflowData);
+        createWorkflow(workflowData);
 
-        // Trigger workflow (call to home to simulate start of day)
-        triggerWorkflow(workflowId);
+        // Trigger workflow (call to doorbell to simulate it being pressed)
+        triggerWorkflow();
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -68,7 +66,7 @@ public class GoodMorningWorkflowCanary {
         return "[]";
     }
 
-    private int createWorkflow(Map<String, String> workflowData) {
+    private void createWorkflow(Map<String, String> workflowData) {
         client.recordNewEvent("POST /home/workflow");
         var workflowResponse = httpClient.target("http://home:8080/home/workflow")
                 .request()
@@ -77,40 +75,39 @@ public class GoodMorningWorkflowCanary {
         if (workflowResponse.getStatus() == 201) {
             var id = workflowResponse.readEntity(new GenericType<Map<String, Integer>>(){}).get("id");
             LOG.info("Workflow created with id {}", id);
-            return id;
         } else {
             LOG.warn("Unable to save workflow. Status: {} Body: {}", workflowResponse.getStatus(), workflowResponse.readEntity(String.class));
         }
-
-        return -1;
     }
 
-    private void triggerWorkflow(int workflowId) {
-        client.recordNewEvent("PUT /home/workflow/trigger/byId/{id}");
-        var workflowResponse = httpClient.target("http://home:8080/home/workflow/trigger/byId/{id}")
-                .resolveTemplate("id", workflowId)
+    private void triggerWorkflow() {
+        var doorbellId = findDoorbell();
+
+        client.recordNewEvent("POST /doorbell/{id}/ring");
+        var workflowResponse = httpClient.target("http://doorbell:8080/doorbell/{id}/ring")
+                .resolveTemplate("id", doorbellId)
                 .request()
-                .put(json(""));
+                .post(json(""));
 
         if (workflowResponse.getStatus() == 202) {
-            LOG.info("Workflow {} triggered", workflowId);
+            LOG.info("Doorbell {} pressed", doorbellId);
         } else {
-            LOG.warn("Unable to trigger workflow. Status: {} Body: {}", workflowResponse.getStatus(), workflowResponse.readEntity(String.class));
+            LOG.warn("Unable to ring doorbell. Status: {} Body: {}", workflowResponse.getStatus(), workflowResponse.readEntity(String.class));
         }
     }
 
-    private void createAndRegisterCamera() {
-        client.recordNewEvent("POST /home/device/register");
-        var response = httpClient.target("http://home:8080/home/device/register")
+    private int findDoorbell() {
+        client.recordNewEvent("GET /doorbell");
+        var response = httpClient.target("http://doorbell:8080/doorbell")
                 .request()
-                .post(json(Map.of("name", "Garage Camera", "deviceType", "CAMERA", "deviceTypeId", 1)));
+                .get();
 
-        if (response.getStatus() == 201) {
-            var deviceId = response.readEntity(new GenericType<Map<String, Integer>>(){}).get("id");
-
-            LOG.info("CAMERA Garage Camera created with id: {}", deviceId);
+        if (response.getStatus() == 200) {
+            return (int) response.readEntity(new GenericType<List<Map<String, Object>>>(){}).get(0).get("id");
         } else {
-            LOG.warn("Unable to save device. Status: {} Body: {}", response.getStatus(), response.readEntity(String.class));
+            LOG.warn("Unable to find doorbell. Status: {} Body: {}", response.getStatus(), response.readEntity(String.class));
         }
+
+        return -1;
     }
 }

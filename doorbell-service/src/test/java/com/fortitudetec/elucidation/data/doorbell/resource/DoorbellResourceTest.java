@@ -15,6 +15,7 @@ import com.fortitudetec.elucidation.client.RecorderResult;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.data.doorbell.db.DoorbellDao;
 import com.fortitudetec.elucidation.data.doorbell.model.Doorbell;
+import com.fortitudetec.elucidation.data.doorbell.service.DoorbellService;
 import io.dropwizard.testing.junit5.DropwizardClientExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import org.junit.jupiter.api.AfterEach;
@@ -40,9 +41,10 @@ class DoorbellResourceTest {
 
     private static final DoorbellDao DOORBELL_DAO = mock(DoorbellDao.class);
     private static final ElucidationEventRecorder RECORDER = mock(ElucidationEventRecorder.class);
+    private static final DoorbellService SERVICE = mock(DoorbellService.class);
 
     private static final DropwizardClientExtension RESOURCE
-            = new DropwizardClientExtension(new DoorbellResource(DOORBELL_DAO, RECORDER));
+            = new DropwizardClientExtension(new DoorbellResource(DOORBELL_DAO, RECORDER, SERVICE));
     private static final String NAME = "My First Doorbell";
 
     private Client client;

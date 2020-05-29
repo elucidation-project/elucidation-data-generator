@@ -94,13 +94,30 @@ public class WorkflowResource {
     }
 
     @PUT
-    @Path("/{id}")
+    @Path("trigger/byId/{id}")
     @Timed
     @ExceptionMetered
-    public Response triggerWorkflow(@PathParam("id") long id, @Context ResourceInfo info) {
+    public Response triggerWorkflowById(@PathParam("id") long id, @Context ResourceInfo info) {
         recordEvent(info);
 
         var optionalWorkflow = dao.findById(id);
+
+        var workflow = optionalWorkflow.orElseThrow(() -> new NotFoundException("Can't find workflow"));
+
+        LOG.info("Triggering workflow {}", workflow.getName());
+        workflowService.runWorkflow(workflow);
+
+        return Response.accepted().build();
+    }
+
+    @PUT
+    @Path("trigger/byName/{name}")
+    @Timed
+    @ExceptionMetered
+    public Response triggerWorkflowByName(@PathParam("name") String name, @Context ResourceInfo info) {
+        recordEvent(info);
+
+        var optionalWorkflow = dao.findByName(name);
 
         var workflow = optionalWorkflow.orElseThrow(() -> new NotFoundException("Can't find workflow"));
 

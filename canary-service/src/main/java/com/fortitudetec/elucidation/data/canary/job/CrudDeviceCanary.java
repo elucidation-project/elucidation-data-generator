@@ -38,7 +38,9 @@ public class CrudDeviceCanary {
     }
 
     public void runCanaryTest() {
-        LOG.info("Running canary test to perform CRUD actions on devices");
+        LOG.info("**********************************************************");
+        LOG.info("* Running canary test to perform CRUD actions on devices *");
+        LOG.info("**********************************************************");
 
         // Register 2 thermostats
         createAndRegisterThermostat("Main Floor Nest Thermostat", "Hallway");

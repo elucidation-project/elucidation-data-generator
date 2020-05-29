@@ -4,6 +4,7 @@ import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
 import com.fortitudetec.elucidation.data.doorbell.config.AppConfig;
 import com.fortitudetec.elucidation.data.doorbell.db.DoorbellDao;
 import com.fortitudetec.elucidation.data.doorbell.resource.DoorbellResource;
+import com.fortitudetec.elucidation.data.doorbell.service.DoorbellService;
 import io.dropwizard.Application;
 import io.dropwizard.db.PooledDataSourceFactory;
 import io.dropwizard.jdbi3.JdbiFactory;
@@ -39,7 +40,8 @@ public class App extends Application<AppConfig> {
 		var doorbellDao = jdbi.onDemand(DoorbellDao.class);
 
 		var eventRecorder = setupEventRecorder();
-		env.jersey().register(new DoorbellResource(doorbellDao, eventRecorder));
+		var doorbellService = new DoorbellService(eventRecorder);
+		env.jersey().register(new DoorbellResource(doorbellDao, eventRecorder, doorbellService));
 	}
 
 	private Jdbi setupJdbi(AppConfig config, Environment env) {

@@ -15,6 +15,7 @@ import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.common.model.Direction;
 import com.fortitudetec.elucidation.data.doorbell.db.DoorbellDao;
 import com.fortitudetec.elucidation.data.doorbell.model.Doorbell;
+import com.fortitudetec.elucidation.data.doorbell.service.DoorbellService;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.constraints.NotNull;
@@ -46,19 +47,22 @@ public class DoorbellResource {
     private static final String CONNECTION_IDENTIFIER_FORMAT = "%s /%s";
 
     private final DoorbellDao dao;
-    private final ElucidationClient<ResourceInfo> client;
+    private final ElucidationClient<ResourceInfo> inboundClient;
+    private final DoorbellService service;
 
-    public DoorbellResource(DoorbellDao dao, ElucidationEventRecorder recorder) {
+    public DoorbellResource(DoorbellDao dao, ElucidationEventRecorder recorder, DoorbellService service) {
         this.dao = dao;
+        this.service = service;
 
         var communicationDef = new HttpCommunicationDefinition();
-        this.client = ElucidationClient.of(recorder, info -> Optional.of(ConnectionEvent.builder()
+        this.inboundClient = ElucidationClient.of(recorder, info -> Optional.of(ConnectionEvent.builder()
                 .communicationType(communicationDef.getCommunicationType())
                 .connectionIdentifier(connectionIdentifierFromResourceInfo(info))
                 .eventDirection(Direction.INBOUND)
                 .serviceName("doorbell-service")
                 .observedAt(System.currentTimeMillis())
                 .build()));
+
     }
 
     @GET
@@ -111,13 +115,12 @@ public class DoorbellResource {
     @ExceptionMetered
     public Response ringDoorbell(@PathParam("id") long id, @Context ResourceInfo info) {
         recordEvent(info);
-
-        // TODO: Trigger doorbell ring
+        service.ringDoorbell();
         return Response.accepted().build();
     }
 
     private void recordEvent(ResourceInfo info) {
-        client.recordNewEvent(info).whenComplete((result, exception) -> {
+        inboundClient.recordNewEvent(info).whenComplete((result, exception) -> {
             if (nonNull(exception)) {
                 LOG.error("An error occurred recording an event.", exception);
                 return;
