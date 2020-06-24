@@ -1,6 +1,8 @@
 package com.fortitudetec.elucidation.data.doorbell;
 
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
+import com.fortitudetec.elucidation.client.ElucidationClient;
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
+import com.fortitudetec.elucidation.client.helper.dropwizard.EndpointTrackingListener;
 import com.fortitudetec.elucidation.data.doorbell.config.AppConfig;
 import com.fortitudetec.elucidation.data.doorbell.db.DoorbellDao;
 import com.fortitudetec.elucidation.data.doorbell.resource.DoorbellResource;
@@ -14,6 +16,8 @@ import io.dropwizard.setup.Environment;
 import lombok.extern.slf4j.Slf4j;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
+
+import java.util.Optional;
 
 @Slf4j
 public class App extends Application<AppConfig> {
@@ -42,6 +46,11 @@ public class App extends Application<AppConfig> {
 		var eventRecorder = setupEventRecorder();
 		var doorbellService = new DoorbellService(eventRecorder);
 		env.jersey().register(new DoorbellResource(doorbellDao, eventRecorder, doorbellService));
+
+		env.jersey().register(new EndpointTrackingListener<String>(
+				env.jersey().getResourceConfig(),
+				"doorbell-service",
+				ElucidationClient.of(eventRecorder, info -> Optional.empty())));
 	}
 
 	private Jdbi setupJdbi(AppConfig config, Environment env) {
@@ -50,9 +59,9 @@ public class App extends Application<AppConfig> {
 		return jdbi;
 	}
 
-	private ElucidationEventRecorder setupEventRecorder() {
+	private ElucidationRecorder setupEventRecorder() {
 		// When using docker compose, elucidation will resolve
-		return new ElucidationEventRecorder("http://elucidation:8080");
+		return new ElucidationRecorder("http://elucidation:8080");
 	}
 }
 

@@ -10,8 +10,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
-import com.fortitudetec.elucidation.client.RecorderResult;
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
+import com.fortitudetec.elucidation.client.ElucidationResult;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.data.doorbell.db.DoorbellDao;
 import com.fortitudetec.elucidation.data.doorbell.model.Doorbell;
@@ -40,7 +40,7 @@ import java.util.concurrent.CompletableFuture;
 class DoorbellResourceTest {
 
     private static final DoorbellDao DOORBELL_DAO = mock(DoorbellDao.class);
-    private static final ElucidationEventRecorder RECORDER = mock(ElucidationEventRecorder.class);
+    private static final ElucidationRecorder RECORDER = mock(ElucidationRecorder.class);
     private static final DoorbellService SERVICE = mock(DoorbellService.class);
 
     private static final DropwizardClientExtension RESOURCE
@@ -52,7 +52,7 @@ class DoorbellResourceTest {
     @BeforeEach
     void setUp() {
         client = ClientBuilder.newClient();
-        when(RECORDER.recordNewEvent(any(ConnectionEvent.class))).thenReturn(CompletableFuture.completedFuture(RecorderResult.ok()));
+        when(RECORDER.recordNewEvent(any(ConnectionEvent.class))).thenReturn(CompletableFuture.completedFuture(ElucidationResult.ok()));
     }
 
     @AfterEach

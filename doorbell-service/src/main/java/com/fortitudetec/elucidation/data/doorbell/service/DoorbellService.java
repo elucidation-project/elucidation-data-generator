@@ -3,7 +3,7 @@ package com.fortitudetec.elucidation.data.doorbell.service;
 import static javax.ws.rs.client.Entity.json;
 
 import com.fortitudetec.elucidation.client.ElucidationClient;
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
 import com.fortitudetec.elucidation.common.definition.HttpCommunicationDefinition;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.common.model.Direction;
@@ -19,7 +19,7 @@ public class DoorbellService {
     private final ElucidationClient<String> outboundClient;
     private final Client httpClient;
 
-    public DoorbellService(ElucidationEventRecorder recorder) {
+    public DoorbellService(ElucidationRecorder recorder) {
         var communicationDef = new HttpCommunicationDefinition();
 
         this.outboundClient = ElucidationClient.of(recorder, identifier -> Optional.of(ConnectionEvent.builder()

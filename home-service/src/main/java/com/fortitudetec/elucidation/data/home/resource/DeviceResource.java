@@ -9,7 +9,7 @@ import static org.apache.commons.lang3.StringUtils.stripStart;
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
 import com.fortitudetec.elucidation.client.ElucidationClient;
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
 import com.fortitudetec.elucidation.common.definition.HttpCommunicationDefinition;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.common.model.Direction;
@@ -46,7 +46,7 @@ public class DeviceResource {
     private final DeviceDao dao;
     private final ElucidationClient<ResourceInfo> client;
 
-    public DeviceResource(DeviceDao dao, ElucidationEventRecorder recorder) {
+    public DeviceResource(DeviceDao dao, ElucidationRecorder recorder) {
         this.dao = dao;
 
         var communicationDef = new HttpCommunicationDefinition();
@@ -99,13 +99,13 @@ public class DeviceResource {
             }
 
             switch (result.getStatus()) {
-                case RECORDED_OK:
+                case SUCCESS:
                     LOG.info("Successfully recorded event to Elucidation");
                     break;
-                case SKIPPED_RECORDING:
+                case SKIPPED:
                     LOG.info("Recording was skipped.  Shouldn't happen here");
                     break;
-                case ERROR_RECORDING:
+                case ERROR:
                     LOG.error("Had a problem recording event. Error: {} Exception: {}", result.getErrorMessage(), result.getException());
             }
         });

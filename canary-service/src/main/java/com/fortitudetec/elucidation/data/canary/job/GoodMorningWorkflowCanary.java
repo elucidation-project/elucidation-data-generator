@@ -3,7 +3,7 @@ package com.fortitudetec.elucidation.data.canary.job;
 import static javax.ws.rs.client.Entity.json;
 
 import com.fortitudetec.elucidation.client.ElucidationClient;
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
 import com.fortitudetec.elucidation.common.definition.HttpCommunicationDefinition;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.common.model.Direction;
@@ -23,7 +23,7 @@ public class GoodMorningWorkflowCanary {
     private final Client httpClient;
     private final ElucidationClient<String> client;
 
-    public GoodMorningWorkflowCanary(Client httpClient, ElucidationEventRecorder eventRecorder) {
+    public GoodMorningWorkflowCanary(Client httpClient, ElucidationRecorder eventRecorder) {
         this.httpClient = httpClient;
 
         var communicationDef = new HttpCommunicationDefinition();

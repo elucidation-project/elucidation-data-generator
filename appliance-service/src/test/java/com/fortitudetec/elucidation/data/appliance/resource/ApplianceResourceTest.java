@@ -10,8 +10,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
-import com.fortitudetec.elucidation.client.RecorderResult;
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
+import com.fortitudetec.elucidation.client.ElucidationResult;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.data.appliance.db.ApplianceDao;
 import com.fortitudetec.elucidation.data.appliance.model.Appliance;
@@ -39,7 +39,7 @@ import java.util.concurrent.CompletableFuture;
 class ApplianceResourceTest {
 
     private static final ApplianceDao APPLIANCE_DAO = mock(ApplianceDao.class);
-    private static final ElucidationEventRecorder RECORDER = mock(ElucidationEventRecorder.class);
+    private static final ElucidationRecorder RECORDER = mock(ElucidationRecorder.class);
 
     private static final DropwizardClientExtension RESOURCE
             = new DropwizardClientExtension(new ApplianceResource(APPLIANCE_DAO, RECORDER));
@@ -50,7 +50,7 @@ class ApplianceResourceTest {
     @BeforeEach
     void setUp() {
         client = ClientBuilder.newClient();
-        when(RECORDER.recordNewEvent(any(ConnectionEvent.class))).thenReturn(CompletableFuture.completedFuture(RecorderResult.ok()));
+        when(RECORDER.recordNewEvent(any(ConnectionEvent.class))).thenReturn(CompletableFuture.completedFuture(ElucidationResult.ok()));
     }
 
     @AfterEach

@@ -5,7 +5,7 @@ import static java.util.Objects.nonNull;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fortitudetec.elucidation.client.ElucidationClient;
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
 import com.fortitudetec.elucidation.common.definition.JmsCommunicationDefinition;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.common.model.Direction;
@@ -31,7 +31,7 @@ public class WorkflowService {
     private final ObjectMapper json;
     private final ElucidationClient<Event> client;
 
-    public WorkflowService(JMSProducer producer, Topic topic, DeviceDao deviceDao, ObjectMapper json, ElucidationEventRecorder recorder) {
+    public WorkflowService(JMSProducer producer, Topic topic, DeviceDao deviceDao, ObjectMapper json, ElucidationRecorder recorder) {
         this.producer = producer;
         this.topic = topic;
         this.deviceDao = deviceDao;
@@ -99,13 +99,13 @@ public class WorkflowService {
             }
 
             switch (result.getStatus()) {
-                case RECORDED_OK:
+                case SUCCESS:
                     LOG.info("Successfully recorded event to Elucidation");
                     break;
-                case SKIPPED_RECORDING:
+                case SKIPPED:
                     LOG.info("Recording was skipped. Shouldn't happen here");
                     break;
-                case ERROR_RECORDING:
+                case ERROR:
                     LOG.error("Had a problem recording event. Error: {} Exception: {}", result.getErrorMessage(), result.getException());
             }
         });

@@ -10,8 +10,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
-import com.fortitudetec.elucidation.client.RecorderResult;
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
+import com.fortitudetec.elucidation.client.ElucidationResult;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.data.light.db.SmartLightDao;
 import com.fortitudetec.elucidation.data.light.model.SmartLight;
@@ -39,7 +39,7 @@ import java.util.concurrent.CompletableFuture;
 class SmartLightResourceTest {
 
     private static final SmartLightDao SMART_LIGHT_DAO = mock(SmartLightDao.class);
-    private static final ElucidationEventRecorder RECORDER = mock(ElucidationEventRecorder.class);
+    private static final ElucidationRecorder RECORDER = mock(ElucidationRecorder.class);
 
     private static final DropwizardClientExtension RESOURCE
             = new DropwizardClientExtension(new SmartLightResource(SMART_LIGHT_DAO, RECORDER));
@@ -52,7 +52,7 @@ class SmartLightResourceTest {
     @BeforeEach
     void setUp() {
         client = ClientBuilder.newClient();
-        when(RECORDER.recordNewEvent(any(ConnectionEvent.class))).thenReturn(CompletableFuture.completedFuture(RecorderResult.ok()));
+        when(RECORDER.recordNewEvent(any(ConnectionEvent.class))).thenReturn(CompletableFuture.completedFuture(ElucidationResult.ok()));
     }
 
     @AfterEach

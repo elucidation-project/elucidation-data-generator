@@ -2,7 +2,9 @@ package com.fortitudetec.elucidation.data.home;
 
 import static java.util.Objects.nonNull;
 
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
+import com.fortitudetec.elucidation.client.ElucidationClient;
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
+import com.fortitudetec.elucidation.client.helper.dropwizard.EndpointTrackingListener;
 import com.fortitudetec.elucidation.data.home.config.AppConfig;
 import com.fortitudetec.elucidation.data.home.db.DeviceDao;
 import com.fortitudetec.elucidation.data.home.db.WorkflowDao;
@@ -21,6 +23,7 @@ import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
 import javax.jms.JMSContext;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -63,9 +66,13 @@ public class App extends Application<AppConfig> {
             workflowService = new WorkflowService(null, null, deviceDao, env.getObjectMapper(), eventRecorder);
         }
 
-
         env.jersey().register(new DeviceResource(deviceDao, eventRecorder));
         env.jersey().register(new WorkflowResource(workflowDao, eventRecorder, workflowService));
+
+        env.jersey().register(new EndpointTrackingListener<String>(
+                env.jersey().getResourceConfig(),
+                "home-service",
+                ElucidationClient.of(eventRecorder, info -> Optional.empty())));
     }
 
     private Jdbi setupJdbi(AppConfig config, Environment env) {
@@ -74,9 +81,9 @@ public class App extends Application<AppConfig> {
         return jdbi;
     }
 
-    private ElucidationEventRecorder setupEventRecorder() {
+    private ElucidationRecorder setupEventRecorder() {
         // When using docker compose, elucidation will resolve
-        return new ElucidationEventRecorder("http://elucidation:8080");
+        return new ElucidationRecorder("http://elucidation:8080");
     }
 
     private JMSContext startContext(Environment env, AppConfig config) {

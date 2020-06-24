@@ -1,6 +1,8 @@
 package com.fortitudetec.elucidation.data.thermostat;
 
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
+import com.fortitudetec.elucidation.client.ElucidationClient;
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
+import com.fortitudetec.elucidation.client.helper.dropwizard.EndpointTrackingListener;
 import com.fortitudetec.elucidation.data.thermostat.config.AppConfig;
 import com.fortitudetec.elucidation.data.thermostat.db.ThermostatDao;
 import com.fortitudetec.elucidation.data.thermostat.jms.JmsConsumer;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -44,6 +47,11 @@ public class App extends Application<AppConfig> {
 		var eventRecorder = setupEventRecorder();
 		env.jersey().register(new ThermostatResource(thermostatDao, eventRecorder));
 		startConsumer(thermostatDao, env, eventRecorder);
+
+		env.jersey().register(new EndpointTrackingListener<String>(
+				env.jersey().getResourceConfig(),
+				"thermostat-service",
+				ElucidationClient.of(eventRecorder, info -> Optional.empty())));
 	}
 
 	private Jdbi setupJdbi(AppConfig config, Environment env) {
@@ -52,12 +60,12 @@ public class App extends Application<AppConfig> {
 		return jdbi;
 	}
 
-	private ElucidationEventRecorder setupEventRecorder() {
+	private ElucidationRecorder setupEventRecorder() {
 		// When using docker compose, elucidation will resolve
-		return new ElucidationEventRecorder("http://elucidation:8080");
+		return new ElucidationRecorder("http://elucidation:8080");
 	}
 
-	private void startConsumer(ThermostatDao thermostatDao, Environment env, ElucidationEventRecorder eventRecorder) {
+	private void startConsumer(ThermostatDao thermostatDao, Environment env, ElucidationRecorder eventRecorder) {
 		var executor = env.lifecycle().scheduledExecutorService("jms").build();
 
 		executor.schedule(() -> {

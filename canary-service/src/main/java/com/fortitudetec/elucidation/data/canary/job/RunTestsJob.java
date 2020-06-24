@@ -1,7 +1,10 @@
 package com.fortitudetec.elucidation.data.canary.job;
 
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
+import static java.lang.String.format;
+
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
+import com.fortitudetec.elucidation.common.model.TrackedConnectionIdentifier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -18,12 +21,14 @@ import java.util.List;
 @Slf4j
 public class RunTestsJob implements Runnable {
 
-    private static final String[] CSV_HEADERS = { "id", "serviceName", "eventDirection", "communicationType", "observedAt" };
+    private static final String[] EVENT_CSV_HEADERS = { "id", "serviceName", "eventDirection", "communicationType", "connectionIdentifier", "observedAt" };
+    private static final String[] TRACK_CSV_HEADERS = { "id", "serviceName", "communicationType", "connectionIdentifier" };
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 
     private final Client httpClient;
-    private final ElucidationEventRecorder eventRecorder;
+    private final ElucidationRecorder eventRecorder;
 
-    public RunTestsJob(Client httpClient, ElucidationEventRecorder eventRecorder) {
+    public RunTestsJob(Client httpClient, ElucidationRecorder eventRecorder) {
         this.httpClient = httpClient;
         this.eventRecorder = eventRecorder;
     }
@@ -49,6 +54,7 @@ public class RunTestsJob implements Runnable {
             Thread.sleep(5000);
 
             writeOutElucidationEvents(now);
+            writeOutTrackedIdentifiers(now);
 
             LOG.info("*********************************************");
             LOG.info("*   ELUCIDATION DATA HAS BEEN GENERATED!!   *");
@@ -61,9 +67,10 @@ public class RunTestsJob implements Runnable {
     }
 
     private void writeOutElucidationEvents(LocalDateTime timeToPullFrom) {
-        var dateStr = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss").format(timeToPullFrom);
+        var dateStr = DATE_TIME_FORMATTER.format(timeToPullFrom);
+        var fileName = format("elucidation-events-%s.csv", dateStr);
 
-        LOG.info("Writing out events to ./export_data/elucidation-events-{}.csv", dateStr);
+        LOG.info("Writing out events to ./export_data/{}", fileName);
 
         var response = httpClient.target("http://elucidation:8080/elucidate/events")
                 .queryParam("since", timeToPullFrom.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
@@ -72,15 +79,33 @@ public class RunTestsJob implements Runnable {
 
         if (response.getStatus() == 200) {
             var events = response.readEntity(new GenericType<List<ConnectionEvent>>(){});
-            createCsv(events, dateStr);
+            createEventCsv(events, fileName);
         } else {
             LOG.warn("Unable to retrieve elucidation events. Status: {} Body: {}", response.getStatus(), response.readEntity(String.class));
         }
     }
 
-    private void createCsv(List<ConnectionEvent> events, String dateStr) {
-        try (var out = new FileWriter("/service/data/elucidation-events-" + dateStr + ".csv");
-             var printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(CSV_HEADERS))) {
+    private void writeOutTrackedIdentifiers(LocalDateTime timeToPullFrom) {
+        var dateStr = DATE_TIME_FORMATTER.format(timeToPullFrom);
+        var fileName = format("elucidation-tracked-identifiers-%s.csv", dateStr);
+
+        LOG.info("Writing out trackedIdentifiers to ./export_data/{}", fileName);
+
+        var response = httpClient.target("http://elucidation:8080/elucidate/trackedIdentifiers")
+                .request()
+                .get();
+
+        if (response.getStatus() == 200) {
+            var trackedConnectionIdentifiers = response.readEntity(new GenericType<List<TrackedConnectionIdentifier>>(){});
+            createTrackedCsv(trackedConnectionIdentifiers, fileName);
+        } else {
+            LOG.warn("Unable to retrieve elucidation events. Status: {} Body: {}", response.getStatus(), response.readEntity(String.class));
+        }
+    }
+
+    private void createEventCsv(List<ConnectionEvent> events, String fileName) {
+        try (var out = new FileWriter("/service/data/" + fileName);
+             var printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(EVENT_CSV_HEADERS))) {
             events.forEach(event -> printEvent(printer, event));
         } catch (IOException e) {
             LOG.warn("Unable to write events due to exception", e);
@@ -96,6 +121,28 @@ public class RunTestsJob implements Runnable {
                     event.getCommunicationType(),
                     event.getConnectionIdentifier(),
                     event.getObservedAt());
+        } catch (IOException e) {
+            LOG.warn("Unable to write record due to exception", e);
+        }
+
+    }
+
+    private void createTrackedCsv(List<TrackedConnectionIdentifier> identifiers, String fileName) {
+        try (var out = new FileWriter("/service/data/" + fileName);
+             var printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(TRACK_CSV_HEADERS))) {
+            identifiers.forEach(identifier -> printIdentifier(printer, identifier));
+        } catch (IOException e) {
+            LOG.warn("Unable to write identifiers due to exception", e);
+        }
+    }
+
+    private void printIdentifier(CSVPrinter printer, TrackedConnectionIdentifier identifier) {
+        try {
+            printer.printRecord(
+                    identifier.getId(),
+                    identifier.getServiceName(),
+                    identifier.getCommunicationType(),
+                    identifier.getConnectionIdentifier());
         } catch (IOException e) {
             LOG.warn("Unable to write record due to exception", e);
         }

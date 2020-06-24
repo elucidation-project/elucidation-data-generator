@@ -4,7 +4,7 @@ import static java.util.Objects.nonNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fortitudetec.elucidation.client.ElucidationClient;
-import com.fortitudetec.elucidation.client.ElucidationEventRecorder;
+import com.fortitudetec.elucidation.client.ElucidationRecorder;
 import com.fortitudetec.elucidation.common.definition.JmsCommunicationDefinition;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.common.model.Direction;
@@ -26,7 +26,7 @@ public class JmsConsumer implements MessageListener {
     private final ElucidationClient<Event> elucidationClient;
     private final ObjectMapper json;
 
-    public JmsConsumer(ThermostatDao dao, ElucidationEventRecorder recorder, ObjectMapper json) {
+    public JmsConsumer(ThermostatDao dao, ElucidationRecorder recorder, ObjectMapper json) {
         this.dao = dao;
         this.json = json;
 
@@ -84,13 +84,13 @@ public class JmsConsumer implements MessageListener {
             }
 
             switch (result.getStatus()) {
-                case RECORDED_OK:
+                case SUCCESS:
                     LOG.info("Successfully recorded event to Elucidation");
                     break;
-                case SKIPPED_RECORDING:
+                case SKIPPED:
                     LOG.info("Recording was skipped. Shouldn't happen here");
                     break;
-                case ERROR_RECORDING:
+                case ERROR:
                     LOG.error("Had a problem recording event. Error: {} Exception: {}", result.getErrorMessage(), result.getException());
             }
         });
