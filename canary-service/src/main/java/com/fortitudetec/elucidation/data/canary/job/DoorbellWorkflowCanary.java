@@ -2,11 +2,7 @@ package com.fortitudetec.elucidation.data.canary.job;
 
 import static javax.ws.rs.client.Entity.json;
 
-import com.fortitudetec.elucidation.client.ElucidationClient;
-import com.fortitudetec.elucidation.client.ElucidationRecorder;
-import com.fortitudetec.elucidation.common.definition.HttpCommunicationDefinition;
-import com.fortitudetec.elucidation.common.model.ConnectionEvent;
-import com.fortitudetec.elucidation.common.model.Direction;
+import com.fortitudetec.elucidation.client.helper.jersey.InboundHttpRequestTrackingFilter;
 import com.google.common.io.Resources;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,25 +12,15 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 public class DoorbellWorkflowCanary {
 
+    private static final String SERVICE_NAME = "canary-service";
     private final Client httpClient;
-    private final ElucidationClient<String> client;
 
-    public DoorbellWorkflowCanary(Client httpClient, ElucidationRecorder eventRecorder) {
+    public DoorbellWorkflowCanary(Client httpClient) {
         this.httpClient = httpClient;
-
-        var communicationDef = new HttpCommunicationDefinition();
-        this.client = ElucidationClient.of(eventRecorder, identifier -> Optional.of(ConnectionEvent.builder()
-                .communicationType(communicationDef.getCommunicationType())
-                .connectionIdentifier(identifier)
-                .eventDirection(Direction.OUTBOUND)
-                .serviceName("canary-service")
-                .observedAt(System.currentTimeMillis())
-                .build()));
     }
 
     public void runCanaryTest() {
@@ -45,7 +31,7 @@ public class DoorbellWorkflowCanary {
         // Create workflow and send to home service
         var workflowData = Map.of(
                 "name", "Doorbell",
-                "stepJson", readWorkflowJson("doorbell_workflow_steps.json")
+                "stepJson", readWorkflowJson()
         );
 
         createWorkflow(workflowData);
@@ -55,21 +41,21 @@ public class DoorbellWorkflowCanary {
     }
 
     @SuppressWarnings("UnstableApiUsage")
-    private String readWorkflowJson(String workflowName) {
-        var url = Resources.getResource(workflowName);
+    private String readWorkflowJson() {
+        var url = Resources.getResource("doorbell_workflow_steps.json");
         try {
             return Resources.toString(url, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            LOG.warn("Unable to read workflow file {}. Returning empty array.", workflowName);
+            LOG.warn("Unable to read workflow file doorbell_workflow_steps.json. Returning empty array.");
         }
 
         return "[]";
     }
 
     private void createWorkflow(Map<String, String> workflowData) {
-        client.recordNewEvent("POST /home/workflow");
         var workflowResponse = httpClient.target("http://home:8080/home/workflow")
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .post(json(workflowData));
 
         if (workflowResponse.getStatus() == 201) {
@@ -83,10 +69,10 @@ public class DoorbellWorkflowCanary {
     private void triggerWorkflow() {
         var doorbellId = findDoorbell();
 
-        client.recordNewEvent("POST /doorbell/{id}/ring");
         var workflowResponse = httpClient.target("http://doorbell:8080/doorbell/{id}/ring")
                 .resolveTemplate("id", doorbellId)
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .post(json(""));
 
         if (workflowResponse.getStatus() == 202) {
@@ -97,9 +83,9 @@ public class DoorbellWorkflowCanary {
     }
 
     private int findDoorbell() {
-        client.recordNewEvent("GET /doorbell");
         var response = httpClient.target("http://doorbell:8080/doorbell")
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .get();
 
         if (response.getStatus() == 200) {

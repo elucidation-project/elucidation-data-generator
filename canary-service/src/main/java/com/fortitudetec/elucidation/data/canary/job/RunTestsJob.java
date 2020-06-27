@@ -2,7 +2,6 @@ package com.fortitudetec.elucidation.data.canary.job;
 
 import static java.lang.String.format;
 
-import com.fortitudetec.elucidation.client.ElucidationRecorder;
 import com.fortitudetec.elucidation.common.model.ConnectionEvent;
 import com.fortitudetec.elucidation.common.model.TrackedConnectionIdentifier;
 import lombok.extern.slf4j.Slf4j;
@@ -26,11 +25,9 @@ public class RunTestsJob implements Runnable {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 
     private final Client httpClient;
-    private final ElucidationRecorder eventRecorder;
 
-    public RunTestsJob(Client httpClient, ElucidationRecorder eventRecorder) {
+    public RunTestsJob(Client httpClient) {
         this.httpClient = httpClient;
-        this.eventRecorder = eventRecorder;
     }
 
     public void run() {
@@ -38,12 +35,12 @@ public class RunTestsJob implements Runnable {
         var now = LocalDateTime.now();
 
         try {
-            new CrudDeviceCanary(httpClient, eventRecorder).runCanaryTest();
+            new CrudDeviceCanary(httpClient).runCanaryTest();
 
             // NOTE: These tests uses devices that were set up in the test above, so if
             // that changes, then this test might need an adjustment.
-            new GoodMorningWorkflowCanary(httpClient, eventRecorder).runCanaryTest();
-            new DoorbellWorkflowCanary(httpClient, eventRecorder).runCanaryTest();
+            new GoodMorningWorkflowCanary(httpClient).runCanaryTest();
+            new DoorbellWorkflowCanary(httpClient).runCanaryTest();
 
         } catch (Exception e) {
             LOG.error("Test job threw an error", e);

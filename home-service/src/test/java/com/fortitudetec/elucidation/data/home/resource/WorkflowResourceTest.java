@@ -43,7 +43,7 @@ class WorkflowResourceTest {
     private static final WorkflowService SERVICE = mock(WorkflowService.class);
 
     private static final DropwizardClientExtension RESOURCE
-            = new DropwizardClientExtension(new WorkflowResource(WORKFLOW_DAO, RECORDER, SERVICE));
+            = new DropwizardClientExtension(new WorkflowResource(WORKFLOW_DAO, SERVICE));
     private static final String NAME = "My First Workflow";
 
     private Client client;

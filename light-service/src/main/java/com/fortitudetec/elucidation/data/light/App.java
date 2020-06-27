@@ -1,8 +1,8 @@
 package com.fortitudetec.elucidation.data.light;
 
-import com.fortitudetec.elucidation.client.ElucidationClient;
 import com.fortitudetec.elucidation.client.ElucidationRecorder;
 import com.fortitudetec.elucidation.client.helper.dropwizard.EndpointTrackingListener;
+import com.fortitudetec.elucidation.client.helper.jersey.InboundHttpRequestTrackingFilter;
 import com.fortitudetec.elucidation.data.light.config.AppConfig;
 import com.fortitudetec.elucidation.data.light.db.SmartLightDao;
 import com.fortitudetec.elucidation.data.light.jms.JmsConsumer;
@@ -17,11 +17,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class App extends Application<AppConfig> {
+
+    private static final String SERVICE_NAME = "light-service";
 
     public static void main(String[] args) throws Exception {
         new App().run(args);
@@ -45,13 +46,18 @@ public class App extends Application<AppConfig> {
         var lightDao = jdbi.onDemand(SmartLightDao.class);
 
         var eventRecorder = setupEventRecorder();
-        env.jersey().register(new SmartLightResource(lightDao, eventRecorder));
+        env.jersey().register(new SmartLightResource(lightDao));
         startConsumer(lightDao, env, eventRecorder);
 
-        env.jersey().register(new EndpointTrackingListener<String>(
+        env.jersey().register(new EndpointTrackingListener(
                 env.jersey().getResourceConfig(),
-                "light-service",
-                ElucidationClient.of(eventRecorder, info -> Optional.empty())));
+                SERVICE_NAME,
+                eventRecorder));
+
+        env.jersey().register(new InboundHttpRequestTrackingFilter(
+                SERVICE_NAME,
+                eventRecorder,
+                InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER));
     }
 
     private Jdbi setupJdbi(AppConfig config, Environment env) {

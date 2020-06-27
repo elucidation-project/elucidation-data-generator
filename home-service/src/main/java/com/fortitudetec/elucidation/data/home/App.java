@@ -2,9 +2,9 @@ package com.fortitudetec.elucidation.data.home;
 
 import static java.util.Objects.nonNull;
 
-import com.fortitudetec.elucidation.client.ElucidationClient;
 import com.fortitudetec.elucidation.client.ElucidationRecorder;
 import com.fortitudetec.elucidation.client.helper.dropwizard.EndpointTrackingListener;
+import com.fortitudetec.elucidation.client.helper.jersey.InboundHttpRequestTrackingFilter;
 import com.fortitudetec.elucidation.data.home.config.AppConfig;
 import com.fortitudetec.elucidation.data.home.db.DeviceDao;
 import com.fortitudetec.elucidation.data.home.db.WorkflowDao;
@@ -23,11 +23,12 @@ import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
 import javax.jms.JMSContext;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class App extends Application<AppConfig> {
+
+    private static final String SERVICE_NAME = "home-service";
 
     public static void main(String[] args) throws Exception {
         new App().run(args);
@@ -46,7 +47,6 @@ public class App extends Application<AppConfig> {
 
     @Override
     public void run(AppConfig config, Environment env) {
-
         var jdbi = setupJdbi(config, env);
 
         var deviceDao = jdbi.onDemand(DeviceDao.class);
@@ -66,13 +66,18 @@ public class App extends Application<AppConfig> {
             workflowService = new WorkflowService(null, null, deviceDao, env.getObjectMapper(), eventRecorder);
         }
 
-        env.jersey().register(new DeviceResource(deviceDao, eventRecorder));
-        env.jersey().register(new WorkflowResource(workflowDao, eventRecorder, workflowService));
+        env.jersey().register(new DeviceResource(deviceDao));
+        env.jersey().register(new WorkflowResource(workflowDao, workflowService));
 
-        env.jersey().register(new EndpointTrackingListener<String>(
+        env.jersey().register(new EndpointTrackingListener(
                 env.jersey().getResourceConfig(),
-                "home-service",
-                ElucidationClient.of(eventRecorder, info -> Optional.empty())));
+                SERVICE_NAME,
+                eventRecorder));
+
+        env.jersey().register(new InboundHttpRequestTrackingFilter(
+                SERVICE_NAME,
+                eventRecorder,
+                InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER));
     }
 
     private Jdbi setupJdbi(AppConfig config, Environment env) {
@@ -104,7 +109,7 @@ public class App extends Application<AppConfig> {
         var factory = new ActiveMQConnectionFactory(config.getArtemisUrl());
         var jmsContext = factory.createContext("elucidation", "password", JMSContext.AUTO_ACKNOWLEDGE);
 
-        jmsContext.setClientID("home-service");
+        jmsContext.setClientID(SERVICE_NAME);
         return jmsContext;
     }
 }

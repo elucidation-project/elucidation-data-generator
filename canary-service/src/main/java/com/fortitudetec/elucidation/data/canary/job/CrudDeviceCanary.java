@@ -2,18 +2,13 @@ package com.fortitudetec.elucidation.data.canary.job;
 
 import static javax.ws.rs.client.Entity.json;
 
-import com.fortitudetec.elucidation.client.ElucidationClient;
-import com.fortitudetec.elucidation.client.ElucidationRecorder;
-import com.fortitudetec.elucidation.common.definition.HttpCommunicationDefinition;
-import com.fortitudetec.elucidation.common.model.ConnectionEvent;
-import com.fortitudetec.elucidation.common.model.Direction;
+import com.fortitudetec.elucidation.client.helper.jersey.InboundHttpRequestTrackingFilter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 public class CrudDeviceCanary {
@@ -21,20 +16,11 @@ public class CrudDeviceCanary {
     private static final String BRAND = "brand";
     private static final String LOCATION = "location";
     private static final String DEVICE_TYPE_ID = "deviceTypeId";
+    private static final String SERVICE_NAME = "canary-service";
     private final Client httpClient;
-    private final ElucidationClient<String> client;
 
-    public CrudDeviceCanary(Client httpClient, ElucidationRecorder eventRecorder) {
+    public CrudDeviceCanary(Client httpClient) {
         this.httpClient = httpClient;
-
-        var communicationDef = new HttpCommunicationDefinition();
-        this.client = ElucidationClient.of(eventRecorder, identifier -> Optional.of(ConnectionEvent.builder()
-                .communicationType(communicationDef.getCommunicationType())
-                .connectionIdentifier(identifier)
-                .eventDirection(Direction.OUTBOUND)
-                .serviceName("canary-service")
-                .observedAt(System.currentTimeMillis())
-                .build()));
     }
 
     public void runCanaryTest() {
@@ -64,9 +50,9 @@ public class CrudDeviceCanary {
     }
 
     private void createAndRegisterThermostat(String name, String location) {
-        client.recordNewEvent("POST /thermostat/register");
         var thermostatResponse = httpClient.target("http://thermostat:8080/thermostat/register")
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .post(json(Map.of("name", name, BRAND, "Nest", LOCATION, location, "currentTemp", 0.0)));
 
         if (thermostatResponse.getStatus() == 201) {
@@ -78,9 +64,9 @@ public class CrudDeviceCanary {
     }
 
     private int createAndRegisterLight(String name, String location) {
-        client.recordNewEvent("POST /light/register");
         var lightResponse = httpClient.target("http://light:8080/light/register")
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .post(json(Map.of("name", name,
                         BRAND, "Phillips",
                         LOCATION, location,
@@ -99,9 +85,9 @@ public class CrudDeviceCanary {
     }
 
     private void createAndRegisterDoorbell() {
-        client.recordNewEvent("POST /doorbell/register");
         var doorbellResponse = httpClient.target("http://doorbell:8080/doorbell/register")
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .post(json(Map.of("name", "Front Doorbell", BRAND, "Ring")));
 
         if (doorbellResponse.getStatus() == 201) {
@@ -113,9 +99,9 @@ public class CrudDeviceCanary {
     }
 
     private void createAndRegisterAppliance() {
-        client.recordNewEvent("POST /appliance/register");
         var applianceResponse = httpClient.target("http://appliance:8080/appliance/register")
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .post(json(Map.of("name", "Coffee Machine", BRAND, "Kuerig", LOCATION, "Kitchen", "state", "OFF")));
 
         if (applianceResponse.getStatus() == 201) {
@@ -127,9 +113,9 @@ public class CrudDeviceCanary {
     }
 
     private int registerDevice(String name, long id, String type) {
-        client.recordNewEvent("POST /home/device/register");
         var response = httpClient.target("http://home:8080/home/device/register")
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .post(json(Map.of("name", name, "deviceType", type, DEVICE_TYPE_ID, id)));
 
         if (response.getStatus() == 201) {
@@ -145,9 +131,9 @@ public class CrudDeviceCanary {
     }
 
     private void retrieveAndRemoveLight(int deviceId) {
-        client.recordNewEvent("GET /home/device");
         var deviceResponse = httpClient.target("http://home:8080/home/device")
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .get();
 
         if (deviceResponse.getStatus() == 200) {
@@ -158,10 +144,10 @@ public class CrudDeviceCanary {
                     .orElseThrow();
 
             LOG.info("Found light to delete. {}", device.get(DEVICE_TYPE_ID));
-            client.recordNewEvent("DELETE /light/{id}");
             var lightResponse = httpClient.target("http://light:8080/light/{id}")
                     .resolveTemplate("id", device.get(DEVICE_TYPE_ID))
                     .request()
+                    .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                     .delete();
 
             if (lightResponse.getStatus() == 202) {
@@ -170,10 +156,10 @@ public class CrudDeviceCanary {
                 LOG.warn("Unable to delete light. Status: {} Body: {}", lightResponse.getStatus(), lightResponse.readEntity(String.class));
             }
 
-            client.recordNewEvent("DELETE /home/device/{id}");
             var deviceDeleteResponse = httpClient.target("http://home:8080/home/device/{id}")
                     .resolveTemplate("id", deviceId)
                     .request()
+                    .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                     .delete();
 
             if (deviceDeleteResponse.getStatus() == 202) {

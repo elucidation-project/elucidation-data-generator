@@ -43,7 +43,7 @@ class ThermostatResourceTest {
     private static final ElucidationRecorder RECORDER = mock(ElucidationRecorder.class);
 
     private static final DropwizardClientExtension RESOURCE
-            = new DropwizardClientExtension(new ThermostatResource(THERMOSTAT_DAO, RECORDER));
+            = new DropwizardClientExtension(new ThermostatResource(THERMOSTAT_DAO));
     private static final String NAME = "My First Thermostat";
     private static final String LOCATION = "Hallway";
 

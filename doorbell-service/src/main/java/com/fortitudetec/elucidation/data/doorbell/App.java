@@ -1,8 +1,8 @@
 package com.fortitudetec.elucidation.data.doorbell;
 
-import com.fortitudetec.elucidation.client.ElucidationClient;
 import com.fortitudetec.elucidation.client.ElucidationRecorder;
 import com.fortitudetec.elucidation.client.helper.dropwizard.EndpointTrackingListener;
+import com.fortitudetec.elucidation.client.helper.jersey.InboundHttpRequestTrackingFilter;
 import com.fortitudetec.elucidation.data.doorbell.config.AppConfig;
 import com.fortitudetec.elucidation.data.doorbell.db.DoorbellDao;
 import com.fortitudetec.elucidation.data.doorbell.resource.DoorbellResource;
@@ -17,10 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
-import java.util.Optional;
-
 @Slf4j
 public class App extends Application<AppConfig> {
+
+	public static final String SERVICE_NAME = "doorbell-service";
 
 	public static void main(String[] args) throws Exception {
 		new App().run(args);
@@ -44,13 +44,18 @@ public class App extends Application<AppConfig> {
 		var doorbellDao = jdbi.onDemand(DoorbellDao.class);
 
 		var eventRecorder = setupEventRecorder();
-		var doorbellService = new DoorbellService(eventRecorder);
-		env.jersey().register(new DoorbellResource(doorbellDao, eventRecorder, doorbellService));
+		var doorbellService = new DoorbellService();
+		env.jersey().register(new DoorbellResource(doorbellDao, doorbellService));
 
-		env.jersey().register(new EndpointTrackingListener<String>(
+		env.jersey().register(new EndpointTrackingListener(
 				env.jersey().getResourceConfig(),
-				"doorbell-service",
-				ElucidationClient.of(eventRecorder, info -> Optional.empty())));
+				SERVICE_NAME,
+				eventRecorder));
+
+		env.jersey().register(new InboundHttpRequestTrackingFilter(
+				SERVICE_NAME,
+				eventRecorder,
+				InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER));
 	}
 
 	private Jdbi setupJdbi(AppConfig config, Environment env) {

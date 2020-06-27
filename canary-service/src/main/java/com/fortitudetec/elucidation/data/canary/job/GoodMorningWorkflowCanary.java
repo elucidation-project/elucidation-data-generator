@@ -2,11 +2,7 @@ package com.fortitudetec.elucidation.data.canary.job;
 
 import static javax.ws.rs.client.Entity.json;
 
-import com.fortitudetec.elucidation.client.ElucidationClient;
-import com.fortitudetec.elucidation.client.ElucidationRecorder;
-import com.fortitudetec.elucidation.common.definition.HttpCommunicationDefinition;
-import com.fortitudetec.elucidation.common.model.ConnectionEvent;
-import com.fortitudetec.elucidation.common.model.Direction;
+import com.fortitudetec.elucidation.client.helper.jersey.InboundHttpRequestTrackingFilter;
 import com.google.common.io.Resources;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,25 +11,15 @@ import javax.ws.rs.core.GenericType;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 public class GoodMorningWorkflowCanary {
 
+    private static final String SERVICE_NAME = "canary-service";
     private final Client httpClient;
-    private final ElucidationClient<String> client;
 
-    public GoodMorningWorkflowCanary(Client httpClient, ElucidationRecorder eventRecorder) {
+    public GoodMorningWorkflowCanary(Client httpClient) {
         this.httpClient = httpClient;
-
-        var communicationDef = new HttpCommunicationDefinition();
-        this.client = ElucidationClient.of(eventRecorder, identifier -> Optional.of(ConnectionEvent.builder()
-                .communicationType(communicationDef.getCommunicationType())
-                .connectionIdentifier(identifier)
-                .eventDirection(Direction.OUTBOUND)
-                .serviceName("canary-service")
-                .observedAt(System.currentTimeMillis())
-                .build()));
     }
 
     public void runCanaryTest() {
@@ -47,7 +33,7 @@ public class GoodMorningWorkflowCanary {
         // Create workflow and send to home service
         var workflowData = Map.of(
                 "name", "Good Morning",
-                "stepJson", readWorkflowJson("good_morning_workflow_steps.json")
+                "stepJson", readWorkflowJson()
         );
 
         var workflowId = createWorkflow(workflowData);
@@ -57,21 +43,21 @@ public class GoodMorningWorkflowCanary {
     }
 
     @SuppressWarnings("UnstableApiUsage")
-    private String readWorkflowJson(String workflowName) {
-        var url = Resources.getResource(workflowName);
+    private String readWorkflowJson() {
+        var url = Resources.getResource("good_morning_workflow_steps.json");
         try {
             return Resources.toString(url, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            LOG.warn("Unable to read workflow file {}. Returning empty array.", workflowName);
+            LOG.warn("Unable to read workflow file good_morning_workflow_steps.json. Returning empty array.");
         }
 
         return "[]";
     }
 
     private int createWorkflow(Map<String, String> workflowData) {
-        client.recordNewEvent("POST /home/workflow");
         var workflowResponse = httpClient.target("http://home:8080/home/workflow")
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .post(json(workflowData));
 
         if (workflowResponse.getStatus() == 201) {
@@ -86,10 +72,10 @@ public class GoodMorningWorkflowCanary {
     }
 
     private void triggerWorkflow(int workflowId) {
-        client.recordNewEvent("PUT /home/workflow/trigger/byId/{id}");
         var workflowResponse = httpClient.target("http://home:8080/home/workflow/trigger/byId/{id}")
                 .resolveTemplate("id", workflowId)
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .put(json(""));
 
         if (workflowResponse.getStatus() == 202) {
@@ -100,9 +86,9 @@ public class GoodMorningWorkflowCanary {
     }
 
     private void createAndRegisterCamera() {
-        client.recordNewEvent("POST /home/device/register");
         var response = httpClient.target("http://home:8080/home/device/register")
                 .request()
+                .header(InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER, SERVICE_NAME)
                 .post(json(Map.of("name", "Garage Camera", "deviceType", "CAMERA", "deviceTypeId", 1)));
 
         if (response.getStatus() == 201) {

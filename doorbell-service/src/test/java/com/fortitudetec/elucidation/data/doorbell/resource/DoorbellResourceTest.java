@@ -44,7 +44,7 @@ class DoorbellResourceTest {
     private static final DoorbellService SERVICE = mock(DoorbellService.class);
 
     private static final DropwizardClientExtension RESOURCE
-            = new DropwizardClientExtension(new DoorbellResource(DOORBELL_DAO, RECORDER, SERVICE));
+            = new DropwizardClientExtension(new DoorbellResource(DOORBELL_DAO, SERVICE));
     private static final String NAME = "My First Doorbell";
 
     private Client client;

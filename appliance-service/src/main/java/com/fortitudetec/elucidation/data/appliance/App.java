@@ -1,8 +1,8 @@
 package com.fortitudetec.elucidation.data.appliance;
 
-import com.fortitudetec.elucidation.client.ElucidationClient;
 import com.fortitudetec.elucidation.client.ElucidationRecorder;
 import com.fortitudetec.elucidation.client.helper.dropwizard.EndpointTrackingListener;
+import com.fortitudetec.elucidation.client.helper.jersey.InboundHttpRequestTrackingFilter;
 import com.fortitudetec.elucidation.data.appliance.config.AppConfig;
 import com.fortitudetec.elucidation.data.appliance.db.ApplianceDao;
 import com.fortitudetec.elucidation.data.appliance.jms.JmsConsumer;
@@ -17,11 +17,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class App extends Application<AppConfig> {
+
+	private static final String SERVICE_NAME = "appliance-service";
 
 	public static void main(String[] args) throws Exception {
 		new App().run(args);
@@ -45,13 +46,18 @@ public class App extends Application<AppConfig> {
 		var applianceDao = jdbi.onDemand(ApplianceDao.class);
 
 		var eventRecorder = setupEventRecorder();
-		env.jersey().register(new ApplianceResource(applianceDao, eventRecorder));
+		env.jersey().register(new ApplianceResource(applianceDao));
 		startConsumer(applianceDao, env, eventRecorder);
 
-		env.jersey().register(new EndpointTrackingListener<String>(
+		env.jersey().register(new EndpointTrackingListener(
 				env.jersey().getResourceConfig(),
-				"appliance-service",
-				ElucidationClient.of(eventRecorder, info -> Optional.empty())));
+				SERVICE_NAME,
+				eventRecorder));
+
+		env.jersey().register(new InboundHttpRequestTrackingFilter(
+				SERVICE_NAME,
+				eventRecorder,
+				InboundHttpRequestTrackingFilter.ELUCIDATION_ORIGINATING_SERVICE_HEADER));
 	}
 
 	private Jdbi setupJdbi(AppConfig config, Environment env) {

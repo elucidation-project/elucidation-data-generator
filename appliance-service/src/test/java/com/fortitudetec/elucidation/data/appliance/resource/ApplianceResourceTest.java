@@ -42,7 +42,7 @@ class ApplianceResourceTest {
     private static final ElucidationRecorder RECORDER = mock(ElucidationRecorder.class);
 
     private static final DropwizardClientExtension RESOURCE
-            = new DropwizardClientExtension(new ApplianceResource(APPLIANCE_DAO, RECORDER));
+            = new DropwizardClientExtension(new ApplianceResource(APPLIANCE_DAO));
     private static final String NAME = "My First Appliance";
 
     private Client client;

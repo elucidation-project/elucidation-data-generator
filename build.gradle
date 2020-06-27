@@ -10,6 +10,7 @@ allprojects {
 
     repositories {
         mavenCentral()
+        mavenLocal()
     }
 }
 
@@ -21,7 +22,7 @@ subprojects {
     ext {
         // Runtime dependency versions
         dropwizardVersion = '2.0.8'
-        elucidationVersion = '4.0.0'
+        elucidationVersion = '4.1.0'
         artemisVersion = '2.12.0'
 
         // Provided dependency versions

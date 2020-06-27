@@ -42,7 +42,7 @@ class SmartLightResourceTest {
     private static final ElucidationRecorder RECORDER = mock(ElucidationRecorder.class);
 
     private static final DropwizardClientExtension RESOURCE
-            = new DropwizardClientExtension(new SmartLightResource(SMART_LIGHT_DAO, RECORDER));
+            = new DropwizardClientExtension(new SmartLightResource(SMART_LIGHT_DAO));
     private static final String NAME = "My First Smart Light";
     private static final String LOCATION = "Kitchen";
     private static final String BRAND = "Phillips";

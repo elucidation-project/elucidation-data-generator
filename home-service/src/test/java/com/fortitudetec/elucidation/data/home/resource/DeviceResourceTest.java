@@ -41,7 +41,7 @@ class DeviceResourceTest {
     private static final ElucidationRecorder RECORDER = mock(ElucidationRecorder.class);
 
     private static final DropwizardClientExtension RESOURCE
-            = new DropwizardClientExtension(new DeviceResource(DEVICE_DAO, RECORDER));
+            = new DropwizardClientExtension(new DeviceResource(DEVICE_DAO));
     private static final String NAME = "My First Device";
 
     private Client client;
