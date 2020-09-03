@@ -79,7 +79,7 @@ public class WorkflowService {
         var event = Event.builder()
                 .uuid(UUID.randomUUID().toString())
                 .action(step.getEventAction())
-                .iotLookup(device.getId())
+                .iotLookup(device.getDeviceTypeId())
                 .value(step.getEventInfo())
                 .build();
 

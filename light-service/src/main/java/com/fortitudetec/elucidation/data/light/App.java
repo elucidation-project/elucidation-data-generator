@@ -17,12 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
+import javax.ws.rs.client.ClientBuilder;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class App extends Application<AppConfig> {
 
-    private static final String SERVICE_NAME = "light-service";
+    public static final String SERVICE_NAME = "light-service";
 
     public static void main(String[] args) throws Exception {
         new App().run(args);
@@ -74,8 +75,9 @@ public class App extends Application<AppConfig> {
     private void startConsumer(SmartLightDao lightDao, Environment env, ElucidationRecorder eventRecorder) {
         var executor = env.lifecycle().scheduledExecutorService("jms").build();
 
+        var httpClient = ClientBuilder.newClient();
         executor.schedule(() -> {
-            var jmsConsumer = new JmsConsumer(lightDao, eventRecorder, env.getObjectMapper());
+            var jmsConsumer = new JmsConsumer(lightDao, eventRecorder, env.getObjectMapper(), httpClient);
             jmsConsumer.start();
         }, 30, TimeUnit.SECONDS);
     }
