@@ -1,4 +1,4 @@
-FROM openjdk:11-jre-slim
+FROM openjdk:17-slim
 EXPOSE 8080 8081
 COPY doorbell.jar /service/
 COPY config.yml /service

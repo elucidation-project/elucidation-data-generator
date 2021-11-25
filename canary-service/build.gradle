@@ -5,7 +5,7 @@ dependencies {
 }
 
 shadowJar {
-    archiveName 'canary.jar'
+    archiveFileName.set('canary.jar')
     mergeServiceFiles()
     exclude 'META-INF/*.DSA'
     exclude 'META-INF/*.RSA'
