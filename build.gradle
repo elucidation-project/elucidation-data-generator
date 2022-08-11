@@ -21,17 +21,17 @@ subprojects {
 
     ext {
         // Runtime dependency versions
-        dropwizardVersion = '2.0.25'
+        dropwizardVersion = '2.1.1'
         elucidationVersion = '4.1.2'
-        artemisVersion = '2.12.0'
+        artemisVersion = '2.23.1'
 
         // Provided dependency versions
-        lombokVersion = '1.18.22'
+        lombokVersion = '1.18.24'
 
         // Test dependency versions
-        junitVersion = '5.8.1'
-        assertjVersion = '3.21.0'
-        mockitoVersion = '4.1.0'
+        junitVersion = '5.9.0'
+        assertjVersion = '3.23.1'
+        mockitoVersion = '4.6.1'
     }
 
     dependencies {
