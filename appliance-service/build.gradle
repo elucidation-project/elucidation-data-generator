@@ -4,7 +4,7 @@ dependencies {
     implementation "io.dropwizard:dropwizard-db:${dropwizardVersion}"
     implementation "io.dropwizard:dropwizard-jdbi3:${dropwizardVersion}"
     implementation "io.dropwizard:dropwizard-migrations:${dropwizardVersion}"
-    implementation 'org.xerial:sqlite-jdbc:3.36.0.3'
+    implementation 'org.xerial:sqlite-jdbc:3.39.3.0'
 }
 
 shadowJar {
