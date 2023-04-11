@@ -5,7 +5,7 @@ plugins {
 
 allprojects {
     apply plugin: 'java'
-    group = "com.fortitudetec.elucidation.data"
+    group = "org.kiwiproject.elucidation.data"
     version = "1.0.1"
 
     repositories {
@@ -22,7 +22,7 @@ subprojects {
     ext {
         // Runtime dependency versions
         dropwizardVersion = '2.1.2'
-        elucidationVersion = '4.1.2'
+        elucidationVersion = '5.0.0'
         artemisVersion = '2.23.1'
 
         // Provided dependency versions
@@ -35,7 +35,7 @@ subprojects {
     }
 
     dependencies {
-        implementation "com.fortitudetec:elucidation-client:${elucidationVersion}"
+        implementation "org.kiwiproject:elucidation-client:${elucidationVersion}"
         implementation "io.dropwizard:dropwizard-core:${dropwizardVersion}"
         implementation "org.apache.activemq:artemis-jms-client:${artemisVersion}"
 

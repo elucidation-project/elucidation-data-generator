@@ -1,5 +1,5 @@
 # Elucidation Data Generator
-This project contains a set of services and process for generating testing data for fortitudetec/elucidation>
+This project contains a set of services and process for generating testing data for elucidation-project/elucidation
 
 ## How to build test suite
 From the root directory run the following command:

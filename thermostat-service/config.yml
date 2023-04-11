@@ -13,6 +13,6 @@ server:
 logging:
   level: INFO
   loggers:
-    com.fortitudetec.elucidation: INFO
+    org.kiwiproject.elucidation: INFO
   appenders:
     - type: console

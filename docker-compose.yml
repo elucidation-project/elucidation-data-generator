@@ -47,7 +47,7 @@ services:
         source: "./export_data"
         target: "/service/data"
   elucidation:
-    image: "fortitudetec/elucidation-server"
+    image: "elucidation-project/elucidation-server"
     ports:
       - "127.0.0.1:9100:8080"
   artemis:
