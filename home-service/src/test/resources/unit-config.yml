@@ -15,6 +15,6 @@ artemisUrl: vm://localhost:61616
 logging:
   level: INFO
   loggers:
-    com.fortitudetec.elucidation: INFO
+    org.kiwiproject.elucidation: INFO
   appenders:
     - type: console

@@ -1,4 +1,4 @@
-mainClassName = "com.fortitudetec.elucidation.data.canary.App"
+mainClassName = "org.kiwiproject.elucidation.data.canary.App"
 
 dependencies {
     implementation 'org.apache.commons:commons-csv:1.9.0'

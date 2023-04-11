@@ -1,4 +1,4 @@
-mainClassName = "com.fortitudetec.elucidation.data.doorbell.App"
+mainClassName = "org.kiwiproject.elucidation.data.doorbell.App"
 
 dependencies {
     implementation "io.dropwizard:dropwizard-db:${dropwizardVersion}"
